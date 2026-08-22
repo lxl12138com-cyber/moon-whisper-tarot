@@ -6,7 +6,7 @@
   <title>Moon Whisper Tarot｜听见月亮的指引</title>
   <meta name="description" content="在月夜森林中提问、抽取三张塔罗牌，并听见月亮的指引。" />
   <link rel="icon" type="image/webp" href="assets/cards/back.webp" />
-  <link rel="stylesheet" href="styles.css?v=ritual-visual-4" />
+  <link rel="stylesheet" href="styles.css?v=reading-system-5" />
 </head>
 <body>
   <header class="site-header">
@@ -102,23 +102,93 @@
     <section class="experience-step result-step" id="result" data-step="result" aria-hidden="true">
       <div class="result-overlay" aria-hidden="true"></div>
       <div class="ritual-panel result-panel">
-        <p class="eyebrow">04 / MOON WHISPER</p>
-        <h2>听见月亮的指引</h2>
+        <header class="result-header">
+          <p class="eyebrow">01 / YOUR READING</p>
+          <h2>听见月亮的指引</h2>
+          <p>PAST · PRESENT · FUTURE</p>
+        </header>
         <div class="result-question-wrap">
-          <small>YOUR QUESTION / 你的问题</small>
+          <small>02 / YOUR QUESTION · 你的问题</small>
           <blockquote id="resultQuestion"></blockquote>
         </div>
-        <div class="result-cards" id="resultCards" aria-label="本次抽到的三张牌"></div>
-        <p class="whisper-en">You do not need every answer tonight.<br>Trust what quietly returns to you.</p>
-        <p class="whisper-zh" id="whisperText"></p>
-        <button type="button" class="gold-button primary-button" id="drawAgain">
-          DRAW AGAIN <span>重新抽牌</span>
-        </button>
+
+        <section class="reading-section result-theme-section" aria-labelledby="themeTitle">
+          <div class="reading-section-heading">
+            <small>03 / THE THREAD</small>
+            <h3 id="themeTitle">今夜牌阵的主线</h3>
+          </div>
+          <p class="result-theme" id="readingTheme"></p>
+        </section>
+
+        <section class="reading-section result-card-section" aria-labelledby="cardsTitle">
+          <div class="reading-section-heading">
+            <small>04 / THREE CARDS</small>
+            <h3 id="cardsTitle">过去 · 现在 · 未来</h3>
+          </div>
+          <div class="result-cards" id="resultCards" aria-label="本次抽到的三张牌及完整解读"></div>
+        </section>
+
+        <section class="reading-section relationship-section" aria-labelledby="relationshipTitle">
+          <div class="reading-section-heading">
+            <small>05 / BETWEEN THE CARDS</small>
+            <h3 id="relationshipTitle">三张牌之间</h3>
+          </div>
+          <div class="relationship-facts">
+            <article>
+              <small>STRUCTURE / 牌阵结构</small>
+              <p id="relationshipStructure"></p>
+            </article>
+            <article>
+              <small>ELEMENTS / 元素变化</small>
+              <p id="relationshipElements"></p>
+            </article>
+            <article class="relationship-core">
+              <small>CORE CARD / 核心牌</small>
+              <p id="relationshipCore"></p>
+            </article>
+          </div>
+          <p class="relationship-text" id="relationshipText"></p>
+        </section>
+
+        <section class="reading-section advice-section" aria-labelledby="adviceTitle">
+          <div class="reading-section-heading">
+            <small>06 / REALITY CHECK</small>
+            <h3 id="adviceTitle">现实提醒</h3>
+          </div>
+          <div class="advice-columns">
+            <article>
+              <h4><span aria-hidden="true">✦</span> 适合</h4>
+              <ul id="suitableActions"></ul>
+            </article>
+            <article>
+              <h4><span aria-hidden="true">☾</span> 需要留意</h4>
+              <ul id="cautionActions"></ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="reading-section closing-section" aria-labelledby="closingTitle">
+          <div class="reading-section-heading">
+            <small>07 / TONIGHT'S WHISPER</small>
+            <h3 id="closingTitle">今夜给你的话</h3>
+          </div>
+          <p class="whisper-zh" id="whisperText"></p>
+          <p class="whisper-en">You do not need every answer tonight.<br>Trust what quietly returns to you.</p>
+        </section>
+
+        <div class="result-actions">
+          <button type="button" class="gold-button primary-button" id="drawAgain">
+            DRAW AGAIN <span>重新抽牌</span>
+          </button>
+          <small>完成本次解读后，开启一组全新的牌阵</small>
+        </div>
       </div>
     </section>
   </main>
 
-  <script src="data/cards-data.js?v=stage5-3"></script>
-  <script src="main.js?v=ritual-visual-4-1"></script>
+  <script src="data/cards-data.js?v=reading-system-5"></script>
+  <script src="data/reading-data.js?v=reading-system-5"></script>
+  <script src="reading-engine.js?v=reading-system-5"></script>
+  <script src="main.js?v=reading-system-5"></script>
 </body>
 </html>

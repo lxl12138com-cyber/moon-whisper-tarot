@@ -40,8 +40,16 @@
   const revealGrid = document.getElementById('revealGrid');
   const revealStatus = document.getElementById('revealStatus');
   const showReading = document.getElementById('showReading');
+  const resultStep = document.getElementById('result');
   const resultQuestion = document.getElementById('resultQuestion');
+  const readingTheme = document.getElementById('readingTheme');
   const resultCards = document.getElementById('resultCards');
+  const relationshipStructure = document.getElementById('relationshipStructure');
+  const relationshipElements = document.getElementById('relationshipElements');
+  const relationshipCore = document.getElementById('relationshipCore');
+  const relationshipText = document.getElementById('relationshipText');
+  const suitableActions = document.getElementById('suitableActions');
+  const cautionActions = document.getElementById('cautionActions');
   const whisperText = document.getElementById('whisperText');
   const drawAgain = document.getElementById('drawAgain');
 
@@ -733,36 +741,87 @@
     openReveal(runId);
   }
 
-  function createResultCard(card, index) {
+  function createResultCard(reading, index) {
+    const { card, position, text } = reading;
     const article = document.createElement('article');
     article.className = 'result-card';
+
+    const heading = document.createElement('div');
+    heading.className = 'result-card-heading';
     const visual = document.createElement('div');
     visual.className = 'result-card-visual';
     visual.appendChild(createCardFront(card, true));
+
     const copy = document.createElement('div');
     copy.className = 'result-card-copy';
-    copy.innerHTML = `<small>${positionLabels[index].en} / ${positionLabels[index].zh}</small><h3>${card.nameEn}</h3><p>${card.nameZh} · ${(card.keywordsZh || []).join(' · ')}</p>`;
-    article.append(visual, copy);
+    const positionLabel = document.createElement('small');
+    positionLabel.textContent = `${position.en} / ${position.zh}`;
+    const englishName = document.createElement('h3');
+    englishName.textContent = card.nameEn;
+    const chineseName = document.createElement('p');
+    chineseName.textContent = `${card.nameZh} · ${(card.keywordsZh || []).join(' · ')}`;
+    copy.append(positionLabel, englishName, chineseName);
+    heading.append(visual, copy);
+
+    const explanation = document.createElement('p');
+    explanation.className = 'result-card-reading';
+    explanation.textContent = text;
+    article.append(heading, explanation);
     return article;
   }
 
-  function buildGuidance() {
-    const [past, present, future] = state.selected;
-    const pastKey = past.keywordsZh?.[0] || past.nameZh;
-    const presentKey = present.keywordsZh?.[0] || present.nameZh;
-    const futureKey = future.keywordsZh?.[0] || future.nameZh;
-    const shared = state.selected.flatMap((card) => card.keywordsZh || []).slice(0, 6).join('、');
+  function renderList(list, items) {
+    list.innerHTML = '';
+    items.forEach((item) => {
+      const entry = document.createElement('li');
+      entry.textContent = item;
+      list.appendChild(entry);
+    });
+  }
 
-    return `关于“${state.question}”，${past.nameZh}把过去的线索带向“${pastKey}”，${present.nameZh}提醒你在当下留意“${presentKey}”，而${future.nameZh}让未来的可能性朝向“${futureKey}”。三张牌共同指向：${shared}。不必急着寻找唯一答案，先回应那个在你心里反复出现、却一直被轻轻搁置的选择。`;
+  function buildFallbackReading() {
+    const cardReadings = state.selected.map((card, index) => ({
+      card,
+      position: positionLabels[index],
+      text: `${card.nameZh}落在${positionLabels[index].zh}，提醒你从“${(card.keywordsZh || []).join('、')}”这些线索重新观察问题。它不是固定结果，而是一种可以继续核对的方向。`
+    }));
+    return {
+      theme: `关于“${state.question}”，三张牌更像是在邀请你依次回看已有经验、当下选择与可能方向。先从现在能够确认的事实开始，再决定下一步，不必把任何趋势理解为唯一答案。`,
+      cardReadings,
+      relationshipDetails: {
+        structure: '三张牌共同构成过去、现在与未来的连续线索。',
+        elementFlow: '元素资料暂时不可用，仍可从三张牌的位置变化观察整体节奏。',
+        core: `${state.selected[1].nameZh}位于现在，是这组牌最适合先回应的节点。`,
+        connection: '过去影响现在，而现在采取的回应会为未来保留不同可能。'
+      },
+      advice: {
+        suitable: ['从眼前可确认的事实开始', '选择一项能够验证的小行动', '为决定保留复盘空间'],
+        cautions: ['把趋势理解成固定结局', '在信息不足时急于下定论', '忽略自己真实的感受与边界']
+      },
+      closingMessage: '答案不必一次完成。先让此刻最清楚的那一步，在现实里发生。'
+    };
   }
 
   function showResult() {
     if (state.selected.length !== 3 || state.revealedCount !== 3 || state.revealInProgress) return;
+    const engine = window.MoonWhisperReading;
+    const analysis = engine?.analyzeSpread
+      ? engine.analyzeSpread(state.selected, engine.classifyQuestion(state.question))
+      : buildFallbackReading();
+
     resultQuestion.textContent = state.question;
+    readingTheme.textContent = analysis.theme;
     resultCards.innerHTML = '';
-    state.selected.forEach((card, index) => resultCards.appendChild(createResultCard(card, index)));
-    whisperText.textContent = buildGuidance();
+    analysis.cardReadings.forEach((reading, index) => resultCards.appendChild(createResultCard(reading, index)));
+    relationshipStructure.textContent = analysis.relationshipDetails.structure;
+    relationshipElements.textContent = analysis.relationshipDetails.elementFlow;
+    relationshipCore.textContent = analysis.relationshipDetails.core;
+    relationshipText.textContent = analysis.relationshipDetails.connection;
+    renderList(suitableActions, analysis.advice.suitable);
+    renderList(cautionActions, analysis.advice.cautions);
+    whisperText.textContent = analysis.closingMessage;
     setStep('result');
+    resultStep.scrollTop = 0;
   }
 
   function resetReadingUi() {
@@ -801,6 +860,13 @@
     showReading.hidden = true;
     showReading.disabled = true;
     resultCards.innerHTML = '';
+    readingTheme.textContent = '';
+    relationshipStructure.textContent = '';
+    relationshipElements.textContent = '';
+    relationshipCore.textContent = '';
+    relationshipText.textContent = '';
+    suitableActions.innerHTML = '';
+    cautionActions.innerHTML = '';
     revealStatus.textContent = '三张牌将依次揭示。';
     whisperText.textContent = '';
     updateDeckHeading('awaken');
