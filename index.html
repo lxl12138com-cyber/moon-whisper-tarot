@@ -6,9 +6,9 @@
   <title>Moon Whisper Tarot｜听见月亮的指引</title>
   <meta name="description" content="在月夜森林中提问、抽取三张塔罗牌，并听见月亮的指引。" />
   <link rel="icon" type="image/webp" href="assets/cards/back.webp" />
-  <link rel="stylesheet" href="styles.css?v=hero-motion-6" />
+  <link rel="stylesheet" href="styles.css?v=hero-final-7" />
 </head>
-<body>
+<body data-step="hero">
   <header class="site-header">
     <div class="brand-mark" aria-hidden="true">☾</div>
     <div class="brand-small">Moon Whisper Tarot</div>
@@ -17,6 +17,22 @@
 
   <main class="experience" id="experience" data-step="hero">
     <section class="experience-step hero is-active" id="hero" data-step="hero" aria-hidden="false">
+      <div class="hero-final-stage">
+        <img
+          class="hero-final-image"
+          src="assets/home/hero-final.png"
+          width="1672"
+          height="941"
+          alt=""
+          aria-hidden="true"
+        />
+        <button
+          type="button"
+          class="hero-start-hotspot"
+          id="heroStartHotspot"
+          aria-label="开始抽牌"
+        ></button>
+      </div>
       <div class="hero-atmosphere" id="heroAtmosphere" aria-hidden="true">
         <div class="hero-depth hero-depth-moon"></div>
         <div class="hero-depth hero-depth-subject"></div>
@@ -196,6 +212,6 @@
   <script src="data/cards-data.js?v=hero-motion-6"></script>
   <script src="data/reading-data.js?v=hero-motion-6"></script>
   <script src="reading-engine.js?v=hero-motion-6"></script>
-  <script src="main.js?v=hero-motion-6"></script>
+  <script src="main.js?v=hero-final-7"></script>
 </body>
 </html>

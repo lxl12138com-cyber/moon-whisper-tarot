@@ -200,6 +200,91 @@ h3 {
     url('assets/production/hero-lake.webp') center / cover no-repeat;
 }
 
+.hero-final-stage {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  body[data-step="hero"]::before {
+    display: none;
+  }
+
+  body[data-step="hero"] .site-header {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .hero {
+    padding: 0;
+    overflow: hidden;
+    background: none;
+  }
+
+  .hero > .hero-atmosphere,
+  .hero > .hero-frame,
+  .hero > .hero-copy {
+    display: none;
+  }
+
+  .hero-final-stage {
+    position: absolute;
+    z-index: 10;
+    top: 50%;
+    left: 50%;
+    display: block;
+    width: max(100%, 177.6833svh);
+    height: max(100%, 56.2799vw);
+    transform: translate(-50%, -50%);
+  }
+
+  .hero-final-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .hero-start-hotspot {
+    position: absolute;
+    z-index: 2;
+    top: 62.5930%;
+    left: 11.6627%;
+    width: 18.2416%;
+    height: 7.1201%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    appearance: none;
+    border: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: transparent;
+    opacity: 1;
+    cursor: pointer;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  .hero-start-hotspot:hover,
+  .hero-start-hotspot:active,
+  .hero-start-hotspot:focus,
+  .hero-start-hotspot:focus-visible {
+    border: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    opacity: 1;
+    filter: none !important;
+    transform: none !important;
+  }
+}
+
 .hero-atmosphere {
   position: absolute;
   z-index: 1;
