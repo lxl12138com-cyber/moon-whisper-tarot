@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Moon Whisper Tarot｜听见月亮的指引</title>
+  <meta name="description" content="在月夜森林中提问、抽取三张塔罗牌，并听见月亮的指引。" />
+  <link rel="icon" type="image/webp" href="assets/cards/back.webp" />
+  <link rel="stylesheet" href="styles.css?v=stage5-3" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand-mark" aria-hidden="true">☾</div>
+    <div class="brand-small">Moon Whisper Tarot</div>
+    <div class="step-indicator" id="stepIndicator" aria-live="polite">ENTER THE NIGHT</div>
+  </header>
+
+  <main class="experience" id="experience" data-step="hero">
+    <section class="experience-step hero is-active" id="hero" data-step="hero" aria-hidden="false">
+      <div class="hero-frame" aria-hidden="true"></div>
+      <div class="fireflies" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <p class="eyebrow">ENTER THE NIGHT</p>
+        <h1>Moon Whisper Tarot</h1>
+        <p class="subtitle">听见月亮的指引</p>
+        <p class="intro">Take a breath. The moon is listening.<br><span>静下来，月亮正在倾听。</span></p>
+        <button type="button" class="gold-button primary-button" id="enterExperience">
+          BEGIN <span>开始占卜</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="experience-step ask-step" id="ask" data-step="ask" aria-hidden="true">
+      <div class="ornament-frame" aria-hidden="true"></div>
+      <form class="ritual-panel ask-panel" id="questionForm" novalidate>
+        <p class="eyebrow">01 / ASK THE MOON</p>
+        <h2>向月亮提问</h2>
+        <p class="step-intro">Name what is quietly returning to your heart.<br><span>写下今晚，你最想得到指引的问题。</span></p>
+        <label class="question-label" for="questionInput">今晚，你想问什么？</label>
+        <textarea id="questionInput" name="question" rows="4" maxlength="240" required
+          placeholder="例如：接下来，我应该把注意力放在哪里？"
+          aria-describedby="questionHelp questionError"></textarea>
+        <div class="question-meta">
+          <small id="questionHelp">问题只会保留在本次页面体验中。</small>
+          <small id="questionCount">0 / 240</small>
+        </div>
+        <p class="form-error" id="questionError" aria-live="polite"></p>
+        <button type="submit" class="gold-button primary-button" id="beginReading" disabled>
+          BEGIN YOUR READING <span>开始你的解读</span>
+        </button>
+      </form>
+    </section>
+
+    <section class="experience-step deck-stage" id="deck" data-step="deck" aria-hidden="true">
+      <div class="deck-overlay" aria-hidden="true"></div>
+      <div class="deck-heading" id="deckHeading">
+        <p class="eyebrow" id="deckEyebrow">02 / THE DECK AWAKENS</p>
+        <h2 id="deckTitle">牌阵苏醒</h2>
+        <p id="deckSubtitle">The cards are listening to your question.</p>
+      </div>
+      <p class="question-echo deck-question" id="deckQuestion"></p>
+      <canvas id="deckCanvas" aria-label="塔罗牌从牌堆自动展开为扇形"></canvas>
+      <div id="circularDeck" class="circular-deck" aria-label="78 张塔罗牌环形空间"></div>
+      <div class="selected-slots" id="selectedSlots" aria-label="过去、现在、未来三张牌位">
+        <div class="slot" data-slot="0"><span class="slot-card">☾</span><b>PAST</b><small>过去</small></div>
+        <div class="slot" data-slot="1"><span class="slot-card">☾</span><b>PRESENT</b><small>现在</small></div>
+        <div class="slot" data-slot="2"><span class="slot-card">☾</span><b>FUTURE</b><small>未来</small></div>
+      </div>
+      <p class="deck-status" id="deckStatus" aria-live="polite">正在唤醒牌阵…</p>
+    </section>
+
+    <section class="experience-step reveal-step" id="reveal" data-step="reveal" aria-hidden="true">
+      <div class="reveal-overlay" aria-hidden="true"></div>
+      <div class="reveal-content">
+        <div class="section-heading reveal-heading">
+          <p class="eyebrow">03 / REVEAL</p>
+          <h2>月光下的三张牌</h2>
+          <p class="question-echo" id="revealQuestion"></p>
+          <p class="reveal-scroll-hint">SCROLL TO REVEAL · 滚动揭示命运</p>
+        </div>
+        <div class="reveal-grid" id="revealGrid"></div>
+        <p class="reveal-status" id="revealStatus" aria-live="polite">三张牌将依次揭示。</p>
+      </div>
+    </section>
+
+    <section class="experience-step result-step" id="result" data-step="result" aria-hidden="true">
+      <div class="result-overlay" aria-hidden="true"></div>
+      <div class="ritual-panel result-panel">
+        <p class="eyebrow">04 / MOON WHISPER</p>
+        <h2>听见月亮的指引</h2>
+        <div class="result-question-wrap">
+          <small>YOUR QUESTION / 你的问题</small>
+          <blockquote id="resultQuestion"></blockquote>
+        </div>
+        <div class="result-cards" id="resultCards" aria-label="本次抽到的三张牌"></div>
+        <p class="whisper-en">You do not need every answer tonight.<br>Trust what quietly returns to you.</p>
+        <p class="whisper-zh" id="whisperText"></p>
+        <button type="button" class="gold-button primary-button" id="drawAgain">
+          DRAW AGAIN <span>重新抽牌</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script src="data/cards-data.js?v=stage5-3"></script>
+  <script src="main.js?v=stage5-3"></script>
+</body>
+</html>
