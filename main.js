@@ -171,10 +171,21 @@
         delay: 540 + (index % 13) * 16,
         easing: 'cubic-bezier(.18,.72,.18,1)',
         fill: 'both'
-      }).finished.catch(() => {});
+      });
     });
 
-    await Promise.all(animations);
+    await Promise.race([
+      Promise.all(animations.map((animation) => animation.finished.catch(() => {}))),
+      new Promise((resolve) => schedule(resolve, 3600, runId))
+    ]);
+    animations.forEach((animation) => {
+      if (animation.playState === 'finished') return;
+      try {
+        animation.finish();
+      } catch {
+        // The fallback only needs to unblock card selection if a browser pauses the timeline.
+      }
+    });
     if (runId === state.runId && state.step === 'deck') finishCircularDeck(runId);
   }
 
