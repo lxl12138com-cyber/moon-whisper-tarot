@@ -453,7 +453,7 @@ h3 {
   opacity: 0;
   pointer-events: none;
   transform-origin: 0 0;
-  transition: opacity .45s ease;
+  transition: opacity .68s ease, scale .68s cubic-bezier(.24, .66, .18, 1);
 }
 
 .circular-deck.is-active {
@@ -475,7 +475,10 @@ h3 {
 }
 
 .circular-deck.is-exploring,
+.circular-deck.is-committing,
 .circular-deck.is-drawing,
+.circular-deck.is-settling,
+.circular-deck.is-retreating,
 .circular-deck.is-selection-complete {
   animation-play-state: paused;
 }
@@ -484,8 +487,14 @@ h3 {
   pointer-events: none;
 }
 
+.circular-deck.is-retreating {
+  opacity: .2;
+  scale: .985;
+}
+
 .circular-deck.is-selection-complete {
-  opacity: .58;
+  opacity: .14;
+  scale: .975;
 }
 
 @keyframes circular-orbit {
@@ -542,6 +551,18 @@ h3 {
   --focus-scale: 1.045;
 }
 
+.orbit-card.is-confirming {
+  --focus-scale: 1.025;
+}
+
+.orbit-card.is-confirming .orbit-card-surface {
+  filter: brightness(1.08) contrast(1.03);
+  box-shadow:
+    0 22px 42px rgba(0, 0, 0, .56),
+    inset 0 0 0 1px rgba(224, 197, 142, .72),
+    0 0 10px rgba(224, 197, 142, .13);
+}
+
 .orbit-card.is-focused .orbit-card-surface {
   filter: brightness(1.1) contrast(1.03) saturate(1.02);
   box-shadow:
@@ -554,6 +575,7 @@ h3 {
   filter: brightness(.74) saturate(.88);
 }
 
+.circular-deck.is-committing .orbit-card:not(.is-confirming) .orbit-card-surface,
 .circular-deck.is-drawing .orbit-card:not(.is-picked) .orbit-card-surface,
 .circular-deck.is-selection-complete .orbit-card:not(.is-picked) .orbit-card-surface {
   filter: brightness(.5) saturate(.72);
@@ -595,6 +617,21 @@ h3 {
 .selected-slots.is-complete {
   z-index: 14;
   transform: translate(-50%, -50%) scale(1.045);
+}
+
+.selected-slots.is-complete .slot.is-locked .slot-card {
+  animation: selected-card-breathe 4.2s ease-in-out infinite;
+}
+
+@keyframes selected-card-breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, .42), inset 0 0 0 1px rgba(224, 197, 142, .16);
+  }
+  50% {
+    transform: scale(1.005);
+    box-shadow: 0 13px 28px rgba(0, 0, 0, .44), inset 0 0 0 1px rgba(224, 197, 142, .2);
+  }
 }
 
 .slot {
@@ -721,6 +758,16 @@ h3 {
   padding: 12px 26px;
   background: rgba(5, 20, 17, .8);
   font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(7px);
+  transition: opacity .5s ease, transform .5s cubic-bezier(.24, .66, .18, 1), border-color .25s ease;
+}
+
+.deck-completion.is-ready .gold-button {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .deck-completion.is-activating {
@@ -749,10 +796,9 @@ h3 {
 }
 
 .reveal-step {
-  display: block;
+  display: grid;
+  overflow: hidden;
   padding: 0;
-  scroll-snap-type: y mandatory;
-  overscroll-behavior: contain;
   background:
     linear-gradient(rgba(2, 10, 15, .72), rgba(3, 10, 13, .64)),
     url('assets/production/moon-result.webp') center / cover no-repeat;
@@ -765,19 +811,21 @@ h3 {
 .reveal-content {
   position: relative;
   z-index: 3;
-  display: block;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
   width: 100%;
-  min-height: 300svh;
-  padding: 0;
+  min-height: 100svh;
+  padding: calc(var(--header-height) + 18px) 0 20px;
   text-align: center;
 }
 
 .reveal-heading {
-  position: sticky;
+  position: relative;
   z-index: 10;
-  top: calc(var(--header-height) + 14px);
+  top: auto;
   width: min(760px, 90vw);
-  height: 0;
   margin: 0 auto;
   pointer-events: none;
 }
@@ -799,49 +847,65 @@ h3 {
 }
 
 .reveal-grid {
-  display: block;
-  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: clamp(18px, 3.2vw, 48px);
+  width: min(980px, 92vw);
+  margin: 0 auto;
 }
 
 .reveal-item {
   display: grid;
-  grid-template-columns: 90px minmax(190px, 248px) minmax(220px, 320px);
-  justify-content: center;
-  align-items: center;
-  gap: clamp(24px, 4vw, 58px);
-  min-height: 100svh;
-  padding: calc(var(--header-height) + 126px) 5vw 48px;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  text-align: left;
-  opacity: .52;
-  transition: opacity .55s ease;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0;
+  text-align: center;
+  opacity: .34;
+  transform: translateY(3px);
+  transition: opacity .6s ease, transform .6s cubic-bezier(.24, .66, .18, 1);
 }
 
 .reveal-item.is-current {
   opacity: 1;
+  transform: translateY(0);
 }
 
 .reveal-item.is-settled {
-  opacity: .72;
+  opacity: .76;
+  transform: translateY(0);
+}
+
+.reveal-grid.is-complete .reveal-item {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .position-label {
-  display: grid;
-  justify-content: end;
+  display: flex;
+  justify-content: center;
   gap: 5px;
   margin: 0;
   color: var(--gold);
   font-size: 10px;
   letter-spacing: .18em;
+  opacity: .48;
+  transition: opacity .45s ease;
 }
 
 .position-label span {
   color: #978d78;
 }
 
+.reveal-item.is-current .position-label,
+.reveal-item.is-revealed .position-label {
+  opacity: 1;
+}
+
 .flip-card {
-  width: 100%;
+  width: min(17vw, 198px);
   aspect-ratio: var(--card-ratio);
   perspective: 1200px;
 }
@@ -851,7 +915,7 @@ h3 {
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform .88s cubic-bezier(.2, .7, .2, 1);
+  transition: transform .84s cubic-bezier(.42, 0, .28, 1);
 }
 
 .flip-card.is-flipped .flip-inner {
@@ -928,10 +992,11 @@ h3 {
 }
 
 .card-meta {
+  min-height: 68px;
   margin: 0;
   opacity: 0;
   transform: translateY(7px);
-  transition: opacity .5s ease .48s, transform .5s ease .48s;
+  transition: opacity .5s ease .44s, transform .5s ease .44s;
 }
 
 .reveal-item.is-revealed .card-meta {
@@ -955,23 +1020,28 @@ h3 {
   font-size: 10px;
 }
 
-.reveal-chapter-cue {
-  margin: 22px 0 0;
-  color: var(--gold);
-  font-size: 9px;
-  letter-spacing: .14em;
+.reveal-result-button {
+  position: relative;
+  z-index: 14;
+  min-width: 210px;
+  margin: 0 auto;
+  animation: reveal-guide-enter .55s cubic-bezier(.24, .66, .18, 1) both;
 }
 
-.reveal-result-button {
-  margin-top: 22px;
+.reveal-result-button[hidden] {
+  display: none;
+}
+
+@keyframes reveal-guide-enter {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .reveal-status {
-  position: sticky;
+  position: relative;
   z-index: 12;
-  bottom: 14px;
   min-height: 20px;
-  margin: -38px auto 18px;
+  margin: 0 auto;
   color: #a99c84;
   font-size: 11px;
   letter-spacing: .08em;
@@ -1268,18 +1338,40 @@ h3 {
   }
 
   .reveal-content {
-    min-height: 300svh;
-    padding: 0;
+    gap: 10px;
+    min-height: 100svh;
+    padding: calc(var(--header-height) + 10px) 0 12px;
   }
 
   .reveal-heading {
-    top: calc(var(--header-height) + 10px);
+    top: auto;
+    width: calc(100vw - 24px);
+  }
+
+  .reveal-heading h2 {
+    margin-bottom: 6px;
+  }
+
+  .reveal-heading .question-echo {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .reveal-scroll-hint {
+    margin-top: 5px;
+    font-size: 7px;
+  }
+
+  .reveal-grid {
+    gap: 6px;
+    width: calc(100vw - 18px);
   }
 
   .reveal-item {
-    grid-template-columns: 1fr;
-    gap: 9px;
-    padding: calc(var(--header-height) + 126px) 18px 42px;
+    grid-template-columns: none;
+    grid-template-rows: auto 1fr auto;
+    gap: 6px;
+    padding: 0;
     text-align: center;
   }
 
@@ -1291,7 +1383,7 @@ h3 {
   }
 
   .flip-card {
-    width: min(46vw, 178px);
+    width: min(27vw, 104px);
     justify-self: center;
   }
 
@@ -1305,36 +1397,42 @@ h3 {
   }
 
   .fallback-face .symbol {
-    margin-bottom: 6px;
-    font-size: 24px;
+    margin-bottom: 4px;
+    font-size: 18px;
   }
 
   .fallback-face h4 {
-    font-size: 10px;
+    font-size: 8px;
   }
 
   .fallback-face p {
-    font-size: 7px;
+    font-size: 6px;
+  }
+
+  .card-meta {
+    min-height: 48px;
   }
 
   .card-meta h3 {
-    font-size: 13px;
+    margin-bottom: 2px;
+    font-size: 10px;
   }
 
   .card-meta p,
   .card-meta small {
-    font-size: 8px;
-  }
-
-  .reveal-chapter-cue {
-    margin-top: 12px;
+    font-size: 7px;
+    line-height: 1.35;
   }
 
   .reveal-result-button {
     min-width: 170px;
-    margin-top: 14px;
+    margin: 0 auto;
     padding-top: 9px;
     padding-bottom: 9px;
+  }
+
+  .reveal-status {
+    font-size: 9px;
   }
 
   .result-step {
@@ -1437,9 +1535,22 @@ h3 {
     height: 110px;
   }
 
-  .reveal-item {
-    grid-template-columns: 76px minmax(170px, 205px) minmax(210px, 300px);
-    padding-top: calc(var(--header-height) + 108px);
+  .reveal-content {
+    gap: 8px;
+    padding-top: calc(var(--header-height) + 8px);
+  }
+
+  .reveal-heading h2 {
+    margin-bottom: 5px;
+    font-size: 38px;
+  }
+
+  .flip-card {
+    width: min(14vw, 162px);
+  }
+
+  .card-meta {
+    min-height: 54px;
   }
 
   .result-panel {

@@ -39,6 +39,7 @@
   const revealStep = document.getElementById('reveal');
   const revealGrid = document.getElementById('revealGrid');
   const revealStatus = document.getElementById('revealStatus');
+  const showReading = document.getElementById('showReading');
   const resultQuestion = document.getElementById('resultQuestion');
   const resultCards = document.getElementById('resultCards');
   const whisperText = document.getElementById('whisperText');
@@ -47,7 +48,6 @@
   const scheduled = new Set();
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let activeHoverCard = null;
-  let revealObserver = null;
 
   const state = {
     step: 'hero',
@@ -58,6 +58,7 @@
     spreadComplete: false,
     isPicking: false,
     readyToReveal: false,
+    revealInProgress: false,
     revealedCount: 0,
     runId: 0
   };
@@ -102,6 +103,16 @@
   function clearScheduled() {
     scheduled.forEach((timer) => window.clearTimeout(timer));
     scheduled.clear();
+  }
+
+  function ritualDelay(delay, runId = state.runId) {
+    return new Promise((resolve) => {
+      window.setTimeout(() => resolve(runId === state.runId), delay);
+    });
+  }
+
+  function ritualTime(normal, reduced) {
+    return reducedMotion.matches ? reduced : normal;
   }
 
   function setDeckPhase(phase) {
@@ -249,6 +260,30 @@
       ? ` · ${positionLabels[selectedCount - 1].zh}已落定`
       : ' · 跟随直觉选择一张牌';
     deckStatus.textContent = `0${selectedCount + 1} / 03 · 当前目标：${current.zh}${settled}`;
+  }
+
+  function holdSettledSelection(position) {
+    slots.forEach((slot, index) => {
+      const status = slot.querySelector('.slot-state');
+      slot.classList.remove('is-current', 'is-pending', 'is-locked');
+
+      if (index <= position) {
+        slot.classList.add('is-locked');
+        slot.dataset.state = 'locked';
+        status.textContent = '✓ 已选择';
+      } else {
+        slot.classList.add('is-pending');
+        slot.dataset.state = 'pending';
+        status.textContent = '未开始';
+      }
+
+      slot.setAttribute(
+        'aria-label',
+        `${positionLabels[index].en} ${positionLabels[index].zh}：${status.textContent}`
+      );
+    });
+
+    deckStatus.textContent = `0${position + 1} / 03 · ${positionLabels[position].zh}已经落定`;
   }
 
   function clearRingFocus() {
@@ -427,6 +462,7 @@
     document.body.appendChild(flyingCard);
     slot.classList.add('is-receiving');
     clearRingFocus();
+    button.classList.remove('is-confirming');
     button.classList.add('is-picked');
 
     if (!flyingCard.animate || reducedMotion.matches) {
@@ -465,8 +501,8 @@
         opacity: 1
       }
     ], {
-      duration: 1180,
-      easing: 'cubic-bezier(.2,.74,.18,1)',
+      duration: 980,
+      easing: 'cubic-bezier(.24,.66,.18,1)',
       fill: 'forwards'
     }).finished.catch(() => {}).finally(() => {
       flyingCard.remove();
@@ -490,13 +526,22 @@
     state.selected.push(card);
     button.dataset.state = 'selected';
     button.disabled = true;
+    clearRingFocus();
+    button.classList.add('is-confirming');
+    ring.classList.add('is-committing');
+    ring.classList.remove('is-orbiting');
     setDeckPhase('pick');
     schedule(() => {
       if (state.isPicking && state.step === 'deck') setDeckPhase('center');
     }, reducedMotion.matches ? 30 : 900, runId);
     selectedSlots.classList.add('is-active');
+    deckStatus.textContent = `0${position + 1} / 03 · 选择已经确认`;
+    slot.querySelector('.slot-state').textContent = '选择已确认';
+
+    const held = await ritualDelay(ritualTime(180, 40), runId);
+    if (!held) return;
+    ring.classList.remove('is-committing');
     ring.classList.add('is-drawing');
-    ring.classList.remove('is-orbiting');
     deckStatus.textContent = `0${position + 1} / 03 · ${positionLabels[position].zh}正在落位…`;
     slot.querySelector('.slot-state').textContent = '正在落位';
 
@@ -507,29 +552,52 @@
     button.dataset.position = positionLabels[position].en.toLowerCase();
     slot.classList.add('is-filled');
     slot.dataset.cardId = String(card.id);
-    setDeckPhase('placed');
+    setDeckPhase('settling');
     ring.classList.remove('is-drawing');
-    updateSelectionUi();
+    ring.classList.add('is-settling');
+    holdSettledSelection(position);
 
     if (state.selected.length < 3) {
+      const settled = await ritualDelay(ritualTime(430, 120), runId);
+      if (!settled) return;
+      ring.classList.remove('is-settling');
+      updateSelectionUi();
       state.isPicking = false;
       setDeckPhase('idle');
       ring.classList.add('is-orbiting');
       return;
     }
 
-    state.isPicking = false;
-    state.readyToReveal = true;
+    deckStatus.textContent = '03 / 03 · 三张选择正在安静落定…';
+    const thirdSettled = await ritualDelay(ritualTime(900, 220), runId);
+    if (!thirdSettled) return;
+
     ring.querySelectorAll('.orbit-card:not(:disabled)').forEach((remainingCard) => {
       remainingCard.disabled = true;
       remainingCard.dataset.state = 'locked';
     });
-    ring.classList.add('is-locked', 'is-selection-complete');
-    ring.classList.remove('is-orbiting');
+    setDeckPhase('retreating');
+    ring.classList.remove('is-settling', 'is-orbiting');
+    ring.classList.add('is-locked', 'is-retreating');
+    deckStatus.textContent = '余下的牌正在退回月夜…';
+
+    const retreated = await ritualDelay(ritualTime(680, 140), runId);
+    if (!retreated) return;
+    ring.classList.remove('is-retreating');
+    ring.classList.add('is-selection-complete');
     updateDeckHeading('complete');
     selectedSlots.classList.add('is-complete');
     deckStage.classList.add('is-complete');
     deckCompletion.hidden = false;
+    deckCompletion.classList.remove('is-ready');
+    revealCards.disabled = true;
+    deckStatus.textContent = '03 / 03 · 三张牌已经落定';
+
+    const revealReady = await ritualDelay(ritualTime(420, 140), runId);
+    if (!revealReady) return;
+    state.isPicking = false;
+    state.readyToReveal = true;
+    deckCompletion.classList.add('is-ready');
     revealCards.disabled = false;
   }
 
@@ -582,23 +650,6 @@
       meta.className = 'card-meta';
       meta.innerHTML = `<h3>${card.nameEn}</h3><p>${card.nameZh}</p><small>${(card.keywordsZh || []).join(' · ')}</small>`;
 
-      const cue = document.createElement('p');
-      cue.className = 'reveal-chapter-cue';
-      cue.textContent = index < 2
-        ? `SCROLL FOR ${positionLabels[index + 1].en} · 继续滚动`
-        : 'THE THREE CARDS HAVE SPOKEN · 三张牌已经显现';
-      meta.appendChild(cue);
-
-      if (index === 2) {
-        const resultButton = document.createElement('button');
-        resultButton.type = 'button';
-        resultButton.className = 'gold-button reveal-result-button';
-        resultButton.innerHTML = 'VIEW THE READING <span>查看月亮的解读</span>';
-        resultButton.hidden = true;
-        resultButton.addEventListener('click', showResult);
-        meta.appendChild(resultButton);
-      }
-
       item.append(position, flip, meta);
       revealGrid.appendChild(item);
     });
@@ -619,15 +670,33 @@
     item.classList.add('is-revealed');
     state.revealedCount += 1;
 
-    const next = positionLabels[index + 1];
-    revealStatus.textContent = next
-      ? `继续滚动，揭示 ${next.en} / ${next.zh}`
-      : '三张牌已经全部显现。';
+    revealStatus.textContent = `${positionLabels[index].en} / ${positionLabels[index].zh}，正在显现。`;
+  }
 
-    if (index === 2) {
-      const resultButton = item.querySelector('.reveal-result-button');
-      resultButton.hidden = false;
-    }
+  async function runRevealSequence(items, runId) {
+    const firstReady = await ritualDelay(ritualTime(320, 80), runId);
+    if (!firstReady || state.step !== 'reveal') return;
+    revealChapter(items[0], 0);
+
+    const presentReady = await ritualDelay(ritualTime(1850, 340), runId);
+    if (!presentReady || state.step !== 'reveal') return;
+    revealChapter(items[1], 1);
+
+    const futureReady = await ritualDelay(ritualTime(2020, 400), runId);
+    if (!futureReady || state.step !== 'reveal') return;
+    revealChapter(items[2], 2);
+
+    const completeReady = await ritualDelay(ritualTime(2200, 480), runId);
+    if (!completeReady || state.step !== 'reveal') return;
+    items.forEach((item) => {
+      item.classList.remove('is-current', 'is-waiting');
+      item.classList.add('is-settled', 'is-complete');
+    });
+    revealGrid.classList.add('is-complete');
+    revealStatus.textContent = '过去 · 现在 · 未来已经完整显现。';
+    state.revealInProgress = false;
+    showReading.hidden = false;
+    showReading.disabled = false;
   }
 
   function openReveal(runId) {
@@ -635,34 +704,28 @@
     setDeckPhase('reveal');
     renderReveal();
     revealQuestion.textContent = `“${state.question}”`;
-    revealStatus.textContent = 'Past / 过去，正在回应。向下滚动继续揭示。';
+    revealStatus.textContent = '请保持安静，牌面即将显现。';
     state.revealedCount = 0;
     setStep('reveal');
     revealStep.scrollTop = 0;
-
     const items = [...revealGrid.querySelectorAll('.reveal-item')];
-    revealObserver?.disconnect();
-    revealObserver = new IntersectionObserver((entries) => {
-      entries
-        .filter((entry) => entry.isIntersecting && entry.intersectionRatio >= .55)
-        .sort((a, b) => Number(a.target.dataset.index) - Number(b.target.dataset.index))
-        .forEach((entry) => revealChapter(entry.target, Number(entry.target.dataset.index)));
-    }, {
-      root: revealStep,
-      threshold: [.55, .7]
-    });
-    items.forEach((item) => revealObserver.observe(item));
-    schedule(() => revealChapter(items[0], 0), reducedMotion.matches ? 80 : 420, runId);
+    runRevealSequence(items, runId);
   }
 
   function beginReveal() {
-    if (!state.readyToReveal || state.selected.length !== 3 || state.step !== 'deck') return;
+    if (
+      !state.readyToReveal ||
+      state.revealInProgress ||
+      state.selected.length !== 3 ||
+      state.step !== 'deck'
+    ) return;
     const runId = state.runId;
     state.readyToReveal = false;
+    state.revealInProgress = true;
     revealCards.disabled = true;
     deckCompletion.classList.add('is-activating');
-    deckStatus.textContent = '三张牌正在回应…';
-    schedule(() => openReveal(runId), reducedMotion.matches ? 80 : 420, runId);
+    deckStatus.textContent = '请保持安静，答案即将显现…';
+    openReveal(runId);
   }
 
   function createResultCard(card, index) {
@@ -689,8 +752,7 @@
   }
 
   function showResult() {
-    if (state.selected.length !== 3) return;
-    revealObserver?.disconnect();
+    if (state.selected.length !== 3 || state.revealedCount !== 3 || state.revealInProgress) return;
     resultQuestion.textContent = state.question;
     resultCards.innerHTML = '';
     state.selected.forEach((card, index) => resultCards.appendChild(createResultCard(card, index)));
@@ -700,13 +762,14 @@
 
   function resetReadingUi() {
     clearRingFocus();
-    revealObserver?.disconnect();
-    revealObserver = null;
     ring.classList.remove(
       'is-active',
       'is-forming',
       'is-stacked',
       'is-drawing',
+      'is-committing',
+      'is-settling',
+      'is-retreating',
       'is-exploring',
       'is-locked',
       'is-selection-complete',
@@ -717,7 +780,7 @@
     selectedSlots.classList.remove('is-active', 'is-complete');
     deckStage.classList.remove('is-complete');
     deckCompletion.hidden = true;
-    deckCompletion.classList.remove('is-activating');
+    deckCompletion.classList.remove('is-activating', 'is-ready');
     revealCards.disabled = true;
     slots.forEach((slot, index) => {
       slot.classList.remove('is-filled', 'is-receiving', 'is-current', 'is-pending', 'is-locked');
@@ -728,7 +791,10 @@
       slot.removeAttribute('aria-label');
     });
     revealGrid.innerHTML = '';
+    revealGrid.classList.remove('is-complete');
     revealStep.scrollTop = 0;
+    showReading.hidden = true;
+    showReading.disabled = true;
     resultCards.innerHTML = '';
     revealStatus.textContent = '三张牌将依次揭示。';
     whisperText.textContent = '';
@@ -745,6 +811,7 @@
     state.spreadComplete = false;
     state.isPicking = false;
     state.readyToReveal = false;
+    state.revealInProgress = false;
     state.revealedCount = 0;
     resetReadingUi();
     buildCircularDeck();
@@ -765,6 +832,7 @@
     state.spreadComplete = false;
     state.isPicking = false;
     state.readyToReveal = false;
+    state.revealInProgress = false;
     state.revealedCount = 0;
     resetReadingUi();
 
@@ -797,9 +865,15 @@
 
   drawAgain.addEventListener('click', resetToAsk);
   revealCards.addEventListener('click', beginReveal);
+  showReading.addEventListener('click', showResult);
 
   window.addEventListener('resize', () => {
-    if (state.step !== 'deck' || !state.spreadComplete || !state.deck.length) return;
+    if (
+      state.step !== 'deck' ||
+      !state.spreadComplete ||
+      !state.deck.length ||
+      state.isPicking
+    ) return;
     buildCircularDeck();
     ring.classList.add('is-active');
     if (state.readyToReveal || state.selected.length === 3) {

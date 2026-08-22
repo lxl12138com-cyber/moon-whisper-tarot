@@ -6,7 +6,7 @@
   <title>Moon Whisper Tarot｜听见月亮的指引</title>
   <meta name="description" content="在月夜森林中提问、抽取三张塔罗牌，并听见月亮的指引。" />
   <link rel="icon" type="image/webp" href="assets/cards/back.webp" />
-  <link rel="stylesheet" href="styles.css?v=draw-feedback-2" />
+  <link rel="stylesheet" href="styles.css?v=ritual-timing-3" />
 </head>
 <body>
   <header class="site-header">
@@ -89,10 +89,13 @@
           <p class="eyebrow">03 / REVEAL</p>
           <h2>月光下的三张牌</h2>
           <p class="question-echo" id="revealQuestion"></p>
-          <p class="reveal-scroll-hint">SCROLL TO REVEAL · 滚动揭示命运</p>
+          <p class="reveal-scroll-hint">PAST · PRESENT · FUTURE｜牌面将依次显现</p>
         </div>
         <div class="reveal-grid" id="revealGrid"></div>
         <p class="reveal-status" id="revealStatus" aria-live="polite">三张牌将依次揭示。</p>
+        <button type="button" class="gold-button reveal-result-button" id="showReading" hidden>
+          VIEW THE READING <span>查看月亮的解读</span>
+        </button>
       </div>
     </section>
 
@@ -116,6 +119,6 @@
   </main>
 
   <script src="data/cards-data.js?v=stage5-3"></script>
-  <script src="main.js?v=draw-feedback-2"></script>
+  <script src="main.js?v=ritual-timing-3"></script>
 </body>
 </html>
