@@ -468,7 +468,7 @@
       return Promise.resolve();
     }
 
-    return flyingCard.animate([
+    const movement = flyingCard.animate([
       {
         transform: `translate(0, 0) scale(1) rotate(${sourceAngle}deg)`,
         filter: 'brightness(1.04)',
@@ -501,7 +501,15 @@
       duration: 980,
       easing: 'cubic-bezier(.24,.66,.18,1)',
       fill: 'forwards'
-    }).finished.catch(() => {}).finally(() => {
+    });
+
+    return Promise.race([
+      movement.finished.catch(() => {}),
+      new Promise((resolve) => window.setTimeout(resolve, 1320))
+    ]).finally(() => {
+      try {
+        movement.cancel();
+      } catch {}
       flyingCard.remove();
       slot.classList.remove('is-receiving');
     });
