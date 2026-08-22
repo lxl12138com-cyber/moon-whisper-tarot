@@ -324,6 +324,12 @@ h3 {
   font-size: clamp(38px, 4.5vw, 62px);
 }
 
+.deck-heading .eyebrow {
+  color: rgba(202, 174, 116, .82);
+  font-size: 9px;
+  letter-spacing: .24em;
+}
+
 .question-label {
   display: block;
   margin: 26px 0 10px;
@@ -379,6 +385,25 @@ h3 {
     url('assets/production/ritual-lake.webp') center / cover no-repeat;
 }
 
+.deck-stage::before {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 29% 31% at 50% 55%, rgba(211, 204, 171, .085), transparent 68%),
+    radial-gradient(ellipse 44% 45% at 50% 55%, rgba(34, 72, 62, .08), transparent 74%);
+  content: "";
+  opacity: .82;
+  transform: scale(.995);
+  animation: ritual-light-breathe 5.6s ease-in-out infinite;
+}
+
+@keyframes ritual-light-breathe {
+  0%, 100% { opacity: .72; transform: scale(.995); }
+  50% { opacity: .88; transform: scale(1.005); }
+}
+
 .deck-overlay,
 .reveal-overlay,
 .result-overlay {
@@ -389,33 +414,57 @@ h3 {
 }
 
 .deck-overlay {
-  background: radial-gradient(ellipse at center, rgba(14, 45, 39, .12), rgba(2, 10, 9, .52) 78%);
+  background:
+    radial-gradient(ellipse at 50% 55%, rgba(14, 45, 39, .06) 0 26%, rgba(2, 10, 9, .3) 62%, rgba(2, 8, 8, .62) 100%),
+    linear-gradient(180deg, rgba(2, 10, 9, .06), rgba(2, 9, 9, .22));
 }
 
 .deck-heading {
   position: absolute;
   z-index: 12;
-  top: 88px;
+  top: 82px;
   left: 50%;
-  width: min(720px, 90vw);
+  width: min(680px, 90vw);
+  isolation: isolate;
   text-align: center;
   transform: translateX(-50%);
   transition: transform .45s ease;
 }
 
+.deck-heading::before {
+  position: absolute;
+  z-index: -1;
+  inset: -26px -84px -20px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(3, 14, 12, .92) 0, rgba(3, 14, 12, .72) 43%, transparent 76%);
+  content: "";
+}
+
 .deck-heading h2 {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  font-size: clamp(40px, 3.9vw, 56px);
+  letter-spacing: .025em;
 }
 
 .deck-heading > p:last-child {
   margin-bottom: 0;
-  color: var(--muted);
-  font-size: 13px;
+  color: #b6aa91;
+  font-size: 12px;
+  letter-spacing: .16em;
+  line-height: 1.55;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .92);
+}
+
+.deck-heading > p:last-child span {
+  display: block;
+  margin-top: 4px;
+  color: #8f8777;
+  font-size: 11px;
   letter-spacing: .08em;
 }
 
 .deck-stage.is-choosing .deck-heading {
-  transform: translateX(-50%) translateY(-5px);
+  transform: translateX(-50%);
 }
 
 .question-echo {
@@ -429,11 +478,15 @@ h3 {
 .deck-question {
   position: absolute;
   z-index: 10;
-  top: 218px;
+  top: calc(55% - 165px);
   left: 50%;
   width: min(640px, 82vw);
   margin: 0;
   overflow: hidden;
+  color: #a69c89;
+  font-size: 11px;
+  opacity: .52;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .9);
   text-overflow: ellipsis;
   white-space: nowrap;
   transform: translateX(-50%);
@@ -446,7 +499,7 @@ h3 {
 .circular-deck {
   position: absolute;
   z-index: 7;
-  top: 52%;
+  top: 55%;
   left: 50%;
   width: 0;
   height: 0;
@@ -542,6 +595,10 @@ h3 {
   transition: filter .3s ease, box-shadow .3s ease, opacity .3s ease;
 }
 
+.deck-stage.is-choosing .orbit-card-surface {
+  filter: brightness(.79) saturate(.82) contrast(.96);
+}
+
 @keyframes card-breathe {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-2px); }
@@ -599,14 +656,50 @@ h3 {
 .selected-slots {
   position: absolute;
   z-index: 9;
-  top: 52%;
+  top: 55%;
   left: 50%;
   display: flex;
-  gap: 24px;
+  gap: 28px;
+  isolation: isolate;
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, -50%) scale(.96);
   transition: opacity .4s ease, transform .4s ease;
+}
+
+.selected-slots::before {
+  position: absolute;
+  z-index: -2;
+  top: 50%;
+  left: 50%;
+  width: 330px;
+  height: 235px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, rgba(221, 211, 174, .095) 0, rgba(75, 100, 83, .055) 40%, transparent 72%);
+  content: "";
+  opacity: .84;
+  transform: translate(-50%, -50%);
+  animation: slot-field-breathe 5.2s ease-in-out infinite;
+}
+
+.selected-slots::after {
+  position: absolute;
+  z-index: -1;
+  top: 48%;
+  left: 50%;
+  width: 238px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(203, 179, 126, .2) 18%, rgba(203, 179, 126, .2) 82%, transparent);
+  content: "";
+  opacity: .5;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes slot-field-breathe {
+  0%, 100% { opacity: .72; transform: translate(-50%, -50%) scale(.995); }
+  50% { opacity: .88; transform: translate(-50%, -50%) scale(1.005); }
 }
 
 .selected-slots.is-active {
@@ -638,16 +731,19 @@ h3 {
   display: grid;
   justify-items: center;
   gap: 5px;
-  color: #c5b99e;
+  color: #aea38d;
   font-size: 10px;
   letter-spacing: .14em;
-  opacity: .46;
+  opacity: .56;
   transition: opacity .35s ease, transform .35s ease;
 }
 
-.slot.is-current,
-.slot.is-locked {
+.slot.is-current {
   opacity: 1;
+}
+
+.slot.is-locked {
+  opacity: .78;
 }
 
 .slot.is-current {
@@ -655,16 +751,25 @@ h3 {
 }
 
 .slot-card {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 103px;
+  width: 64px;
+  height: 114px;
   margin-bottom: 3px;
-  border: 1px solid rgba(224, 197, 142, .58);
+  overflow: hidden;
+  border: 1px solid rgba(190, 159, 102, .42);
   border-radius: 6px;
-  background: rgba(7, 21, 18, .58);
-  color: var(--gold);
-  transition: background .25s ease, box-shadow .25s ease, transform .25s ease;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(218, 199, 151, .055), transparent 42%),
+    linear-gradient(180deg, rgba(10, 31, 26, .68), rgba(4, 18, 16, .72));
+  color: rgba(213, 192, 142, .68);
+  box-shadow:
+    inset 0 0 0 3px rgba(5, 17, 15, .62),
+    inset 0 0 0 4px rgba(190, 159, 102, .12),
+    0 10px 24px rgba(0, 0, 0, .26);
+  text-shadow: 0 0 9px rgba(224, 197, 142, .12);
+  transition: background .35s ease, border-color .35s ease, box-shadow .35s ease, transform .35s ease;
 }
 
 .slot.is-filled .slot-card {
@@ -675,15 +780,26 @@ h3 {
 }
 
 .slot.is-current .slot-card {
-  border-color: var(--moon);
-  box-shadow: 0 0 14px rgba(224, 197, 142, .14);
+  border-color: rgba(225, 204, 159, .82);
+  color: var(--moon);
+  box-shadow:
+    inset 0 0 0 3px rgba(5, 17, 15, .62),
+    inset 0 0 0 4px rgba(224, 197, 142, .2),
+    0 13px 28px rgba(0, 0, 0, .36),
+    0 0 13px rgba(224, 197, 142, .105);
+  animation: waiting-slot-breathe 5s ease-in-out infinite;
 }
 
 .slot.is-locked .slot-card {
-  border-color: rgba(224, 197, 142, .72);
+  border-color: rgba(207, 181, 126, .62);
   box-shadow:
     0 12px 26px rgba(0, 0, 0, .42),
     inset 0 0 0 1px rgba(224, 197, 142, .16);
+}
+
+@keyframes waiting-slot-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.004); }
 }
 
 @keyframes slot-card-settle {
@@ -695,17 +811,35 @@ h3 {
   border-color: var(--moon);
   box-shadow: 0 0 18px rgba(224, 197, 142, .2);
   transform: translateY(-5px);
+  animation: none;
 }
 
 .slot small {
-  color: #948b78;
-  font-size: 9px;
+  color: #887f6e;
+  font-size: 10px;
   letter-spacing: .12em;
+}
+
+.slot > b {
+  color: #9d927c;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: .2em;
+}
+
+.slot.is-current > b,
+.slot.is-current > small {
+  color: #d7c59b;
+}
+
+.slot.is-locked > b,
+.slot.is-locked > small {
+  color: #b9aa8d;
 }
 
 .slot-state {
   min-height: 11px;
-  color: #766f61;
+  color: #6f695d;
   font-size: 8px;
   font-style: normal;
   letter-spacing: .08em;
@@ -717,7 +851,7 @@ h3 {
 }
 
 .slot.is-locked .slot-state {
-  color: var(--gold);
+  color: #a99a7e;
 }
 
 .deck-completion {
@@ -788,9 +922,10 @@ h3 {
   bottom: 18px;
   max-width: 300px;
   margin: 0;
-  color: var(--gold);
-  font-size: 11px;
-  letter-spacing: .08em;
+  color: #9c9079;
+  font-size: 10px;
+  letter-spacing: .1em;
+  opacity: .72;
   text-align: right;
   transition: color .3s ease, opacity .3s ease;
 }
@@ -1267,7 +1402,7 @@ h3 {
   }
 
   .deck-heading {
-    top: 75px;
+    top: 72px;
   }
 
   .deck-heading .eyebrow {
@@ -1279,12 +1414,12 @@ h3 {
   }
 
   .deck-question {
-    top: 180px;
-    font-size: 11px;
+    top: calc(54% - 140px);
+    font-size: 10px;
   }
 
   .circular-deck {
-    top: 52%;
+    top: 54%;
   }
 
   .orbit-card,
@@ -1299,8 +1434,17 @@ h3 {
   }
 
   .selected-slots {
-    top: 52%;
-    gap: 9px;
+    top: 54%;
+    gap: 12px;
+  }
+
+  .selected-slots::before {
+    width: 276px;
+    height: 190px;
+  }
+
+  .selected-slots::after {
+    width: 184px;
   }
 
   .slot-card {
@@ -1310,6 +1454,14 @@ h3 {
 
   .slot-state {
     font-size: 7px;
+  }
+
+  .slot > b {
+    font-size: 8px;
+  }
+
+  .slot small {
+    font-size: 9px;
   }
 
   .deck-completion {
@@ -1512,11 +1664,11 @@ h3 {
   }
 
   .deck-question {
-    top: 175px;
+    top: calc(54% - 150px);
   }
 
   .circular-deck {
-    top: 52%;
+    top: 54%;
   }
 
   .orbit-card,
@@ -1526,7 +1678,7 @@ h3 {
   }
 
   .selected-slots {
-    top: 52%;
+    top: 54%;
     gap: 18px;
   }
 

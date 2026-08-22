@@ -134,16 +134,16 @@
       deckStage.classList.remove('is-choosing');
       deckEyebrow.textContent = '02 / THE CHOICE IS SEALED';
       deckTitle.textContent = '三张牌已经落定';
-      deckSubtitle.textContent = 'Past · Present · Future｜你的选择已经完成。';
+      deckSubtitle.innerHTML = '过去 · 现在 · 未来<span>你的选择已经完成。</span>';
       return;
     }
 
     const choosing = mode === 'choose';
     deckStage.classList.toggle('is-choosing', choosing);
     deckEyebrow.textContent = choosing ? '02 / FOLLOW YOUR INTUITION' : '02 / THE DECK AWAKENS';
-    deckTitle.textContent = choosing ? 'Choose Three Cards' : '牌阵苏醒';
-    deckSubtitle.textContent = choosing
-      ? 'Past · Present · Future｜跟随直觉，选择三张牌。'
+    deckTitle.textContent = choosing ? '让直觉替你选择' : '牌阵苏醒';
+    deckSubtitle.innerHTML = choosing
+      ? '过去 · 现在 · 未来<span>跟随第一直觉，完成三次选择。</span>'
       : 'The cards are listening to your question.';
   }
 
@@ -233,7 +233,7 @@
       if (index < selectedCount) {
         slot.classList.add('is-locked');
         slot.dataset.state = 'locked';
-        status.textContent = '✓ 已选择';
+        status.textContent = '已落定';
       } else if (index === selectedCount && !complete) {
         slot.classList.add('is-current');
         slot.dataset.state = 'current';
@@ -241,7 +241,7 @@
       } else {
         slot.classList.add('is-pending');
         slot.dataset.state = 'pending';
-        status.textContent = '未开始';
+        status.textContent = '尚未开始';
       }
 
       slot.setAttribute(
@@ -256,10 +256,7 @@
     }
 
     const current = positionLabels[selectedCount];
-    const settled = selectedCount > 0
-      ? ` · ${positionLabels[selectedCount - 1].zh}已落定`
-      : ' · 跟随直觉选择一张牌';
-    deckStatus.textContent = `0${selectedCount + 1} / 03 · 当前目标：${current.zh}${settled}`;
+    deckStatus.textContent = `0${selectedCount + 1} / 03 · ${current.zh}正在等待`;
   }
 
   function holdSettledSelection(position) {
@@ -270,11 +267,11 @@
       if (index <= position) {
         slot.classList.add('is-locked');
         slot.dataset.state = 'locked';
-        status.textContent = '✓ 已选择';
+        status.textContent = '已落定';
       } else {
         slot.classList.add('is-pending');
         slot.dataset.state = 'pending';
-        status.textContent = '未开始';
+        status.textContent = '尚未开始';
       }
 
       slot.setAttribute(
@@ -283,7 +280,7 @@
       );
     });
 
-    deckStatus.textContent = `0${position + 1} / 03 · ${positionLabels[position].zh}已经落定`;
+    deckStatus.textContent = `0${position + 1} / 03 · ${positionLabels[position].zh}已落定`;
   }
 
   function clearRingFocus() {
@@ -535,15 +532,15 @@
       if (state.isPicking && state.step === 'deck') setDeckPhase('center');
     }, reducedMotion.matches ? 30 : 900, runId);
     selectedSlots.classList.add('is-active');
-    deckStatus.textContent = `0${position + 1} / 03 · 选择已经确认`;
-    slot.querySelector('.slot-state').textContent = '选择已确认';
+    deckStatus.textContent = `0${position + 1} / 03 · 心念已定`;
+    slot.querySelector('.slot-state').textContent = '正在回应';
 
     const held = await ritualDelay(ritualTime(180, 40), runId);
     if (!held) return;
     ring.classList.remove('is-committing');
     ring.classList.add('is-drawing');
-    deckStatus.textContent = `0${position + 1} / 03 · ${positionLabels[position].zh}正在落位…`;
-    slot.querySelector('.slot-state').textContent = '正在落位';
+    deckStatus.textContent = `0${position + 1} / 03 · ${positionLabels[position].zh}正在回应…`;
+    slot.querySelector('.slot-state').textContent = '正在回应';
 
     await animateCardToSlot(button, slot);
     if (runId !== state.runId) return;
@@ -787,7 +784,7 @@
       delete slot.dataset.cardId;
       delete slot.dataset.state;
       const status = slot.querySelector('.slot-state');
-      status.textContent = index === 0 ? '等待选择' : '未开始';
+      status.textContent = index === 0 ? '等待选择' : '尚未开始';
       slot.removeAttribute('aria-label');
     });
     revealGrid.innerHTML = '';
