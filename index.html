@@ -6,7 +6,7 @@
   <title>Moon Whisper Tarot｜听见月亮的指引</title>
   <meta name="description" content="在月夜森林中提问、抽取三张塔罗牌，并听见月亮的指引。" />
   <link rel="icon" type="image/webp" href="assets/cards/back.webp" />
-  <link rel="stylesheet" href="styles.css?v=reading-system-5" />
+  <link rel="stylesheet" href="styles.css?v=hero-motion-6" />
 </head>
 <body>
   <header class="site-header">
@@ -17,8 +17,15 @@
 
   <main class="experience" id="experience" data-step="hero">
     <section class="experience-step hero is-active" id="hero" data-step="hero" aria-hidden="false">
+      <div class="hero-atmosphere" id="heroAtmosphere" aria-hidden="true">
+        <div class="hero-depth hero-depth-moon"></div>
+        <div class="hero-depth hero-depth-subject"></div>
+        <div class="hero-depth hero-depth-foreground"></div>
+        <div class="hero-water-light"></div>
+        <canvas class="hero-fireflies" id="heroFireflies"></canvas>
+        <div class="hero-cursor-glow"></div>
+      </div>
       <div class="hero-frame" aria-hidden="true"></div>
-      <div class="fireflies" aria-hidden="true"></div>
       <div class="hero-copy">
         <p class="hero-brand">MOON WHISPER TAROT</p>
         <h1>听见月亮的指引</h1>
@@ -29,7 +36,7 @@
         <button type="button" class="gold-button primary-button" id="enterExperience">
           开始抽牌
         </button>
-        <p class="hero-scroll-hint">向下进入月夜 ↓</p>
+        <p class="hero-scroll-hint">向下进入月夜 <span aria-hidden="true">↓</span></p>
       </div>
     </section>
 
@@ -186,9 +193,9 @@
     </section>
   </main>
 
-  <script src="data/cards-data.js?v=reading-system-5"></script>
-  <script src="data/reading-data.js?v=reading-system-5"></script>
-  <script src="reading-engine.js?v=reading-system-5"></script>
-  <script src="main.js?v=reading-system-5"></script>
+  <script src="data/cards-data.js?v=hero-motion-6"></script>
+  <script src="data/reading-data.js?v=hero-motion-6"></script>
+  <script src="reading-engine.js?v=hero-motion-6"></script>
+  <script src="main.js?v=hero-motion-6"></script>
 </body>
 </html>

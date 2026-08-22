@@ -18,6 +18,9 @@
   const experience = document.getElementById('experience');
   const steps = [...document.querySelectorAll('.experience-step')];
   const stepIndicator = document.getElementById('stepIndicator');
+  const heroStage = document.getElementById('hero');
+  const heroAtmosphere = document.getElementById('heroAtmosphere');
+  const heroFireflies = document.getElementById('heroFireflies');
   const enterExperience = document.getElementById('enterExperience');
   const questionForm = document.getElementById('questionForm');
   const questionInput = document.getElementById('questionInput');
@@ -55,7 +58,9 @@
 
   const scheduled = new Set();
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
   let activeHoverCard = null;
+  let heroMotion = null;
 
   const state = {
     step: 'hero',
@@ -80,6 +85,289 @@
     return shuffled;
   }
 
+  function createHeroMotion() {
+    const context = heroFireflies?.getContext('2d', { alpha: true });
+    if (!heroStage || !heroAtmosphere || !heroFireflies || !context) return null;
+
+    const layerSettings = {
+      far: { radius: [.45, .85], alpha: [.12, .27], speed: [.003, .008], arc: [2, 7], glow: 2 },
+      middle: { radius: [.8, 1.45], alpha: [.24, .47], speed: [.005, .012], arc: [4, 11], glow: 5 },
+      near: { radius: [1.45, 2.2], alpha: [.35, .62], speed: [.008, .016], arc: [6, 15], glow: 9 }
+    };
+    const pointer = {
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+      strength: 0,
+      targetStrength: 0,
+      nx: 0,
+      ny: 0,
+      targetNx: 0,
+      targetNy: 0
+    };
+
+    let width = 0;
+    let height = 0;
+    let pixelRatio = 1;
+    let particles = [];
+    let animationFrame = 0;
+    let lastTime = 0;
+    let lastDrawTime = 0;
+    let isActive = false;
+    let buttonBoost = 0;
+    let buttonBoostTarget = 0;
+    let buttonCenter = { x: 0, y: 0 };
+
+    function between([minimum, maximum]) {
+      return minimum + Math.random() * (maximum - minimum);
+    }
+
+    function particleCounts() {
+      if (reducedMotion.matches) return { far: 6, middle: 3, near: 0 };
+      if (width <= 800 || !finePointer.matches) return { far: 7, middle: 4, near: 1 };
+      return { far: 12, middle: 9, near: 3 };
+    }
+
+    function createParticles() {
+      const counts = particleCounts();
+      particles = Object.entries(counts).flatMap(([layer, count]) => {
+        const settings = layerSettings[layer];
+        return Array.from({ length: count }, (_, index) => {
+          const direction = (index + Math.random()) % 2 > 1 ? 1 : -1;
+          return {
+            layer,
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: between(settings.speed) * direction,
+            vy: between(settings.speed) * (.35 + Math.random() * .7) * (Math.random() > .46 ? -1 : 1),
+            radius: between(settings.radius),
+            alpha: between(settings.alpha),
+            arc: between(settings.arc),
+            phase: Math.random() * Math.PI * 2,
+            pulseRate: .00035 + Math.random() * .00048,
+            driftRate: .00012 + Math.random() * .00024,
+            pauseRate: .00006 + Math.random() * .0001,
+            glow: settings.glow
+          };
+        });
+      });
+
+      heroFireflies.dataset.particleCount = String(particles.length);
+      heroFireflies.dataset.layers = `far:${counts.far},middle:${counts.middle},near:${counts.near}`;
+      heroFireflies.dataset.fpsCap = '30';
+      heroAtmosphere.dataset.mode = reducedMotion.matches
+        ? 'reduced'
+        : width <= 800 || !finePointer.matches
+          ? 'mobile'
+          : 'desktop';
+    }
+
+    function resizeCanvas() {
+      const rect = heroStage.getBoundingClientRect();
+      const nextWidth = Math.max(1, Math.round(rect.width));
+      const nextHeight = Math.max(1, Math.round(rect.height));
+      if (nextWidth === width && nextHeight === height && particles.length) return;
+
+      width = nextWidth;
+      height = nextHeight;
+      pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      heroFireflies.width = Math.round(width * pixelRatio);
+      heroFireflies.height = Math.round(height * pixelRatio);
+      heroFireflies.style.width = `${width}px`;
+      heroFireflies.style.height = `${height}px`;
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      pointer.x = pointer.targetX = width / 2;
+      pointer.y = pointer.targetY = height / 2;
+      createParticles();
+      updateButtonCenter();
+
+      if (reducedMotion.matches || !isActive) drawParticles(0, 0, true);
+    }
+
+    function updateButtonCenter() {
+      const heroRect = heroStage.getBoundingClientRect();
+      const buttonRect = enterExperience.getBoundingClientRect();
+      buttonCenter = {
+        x: buttonRect.left - heroRect.left + buttonRect.width / 2,
+        y: buttonRect.top - heroRect.top + buttonRect.height / 2
+      };
+    }
+
+    function wrapParticle(particle) {
+      const padding = 24;
+      if (particle.x < -padding) particle.x = width + padding;
+      if (particle.x > width + padding) particle.x = -padding;
+      if (particle.y < -padding) particle.y = height + padding;
+      if (particle.y > height + padding) particle.y = -padding;
+    }
+
+    function drawParticles(time, delta, staticFrame = false) {
+      context.clearRect(0, 0, width, height);
+
+      particles.forEach((particle) => {
+        if (!staticFrame) {
+          const pause = .08 + .92 * (.5 + .5 * Math.sin(time * particle.pauseRate + particle.phase));
+          const activity = 1 + buttonBoost * .16;
+          particle.x += particle.vx * delta * pause * activity;
+          particle.y += particle.vy * delta * pause * activity;
+          wrapParticle(particle);
+        }
+
+        let drawX = particle.x + Math.sin(time * particle.driftRate + particle.phase) * particle.arc;
+        let drawY = particle.y + Math.cos(time * particle.driftRate * .78 + particle.phase) * particle.arc * .58;
+        let localBoost = 0;
+
+        if (pointer.strength > .01 && width > 800 && finePointer.matches && !reducedMotion.matches) {
+          const dx = drawX - pointer.x;
+          const dy = drawY - pointer.y;
+          const distance = Math.hypot(dx, dy) || 1;
+          const responseRadius = particle.layer === 'near' ? 112 : particle.layer === 'middle' ? 94 : 72;
+          if (distance < responseRadius) {
+            const response = (1 - distance / responseRadius) * pointer.strength;
+            const displacement = response * (particle.layer === 'near' ? 10 : particle.layer === 'middle' ? 7 : 3.5);
+            drawX += (dx / distance) * displacement;
+            drawY += (dy / distance) * displacement;
+          }
+        }
+
+        if (buttonBoost > .01) {
+          const buttonDistance = Math.hypot(drawX - buttonCenter.x, drawY - buttonCenter.y);
+          if (buttonDistance < 210) localBoost = (1 - buttonDistance / 210) * buttonBoost;
+        }
+
+        const pulse = staticFrame ? .88 : .78 + .22 * Math.sin(time * particle.pulseRate + particle.phase);
+        const alpha = Math.min(.72, particle.alpha * pulse * (1 + localBoost * .28));
+        const radius = particle.radius * (1 + localBoost * .08);
+        context.beginPath();
+        context.arc(drawX, drawY, radius, 0, Math.PI * 2);
+        context.fillStyle = `rgba(238, 218, 128, ${alpha})`;
+        context.shadowColor = `rgba(218, 218, 126, ${alpha * .72})`;
+        context.shadowBlur = particle.glow + localBoost * 2;
+        context.fill();
+      });
+
+      context.shadowBlur = 0;
+    }
+
+    function applyParallax() {
+      const nx = pointer.nx;
+      const ny = pointer.ny;
+      heroStage.style.setProperty('--hero-moon-x', `${(nx * 1.15).toFixed(2)}px`);
+      heroStage.style.setProperty('--hero-moon-y', `${(ny * .8).toFixed(2)}px`);
+      heroStage.style.setProperty('--hero-subject-x', `${(nx * 2.45).toFixed(2)}px`);
+      heroStage.style.setProperty('--hero-subject-y', `${(ny * 1.65).toFixed(2)}px`);
+      heroStage.style.setProperty('--hero-foreground-x', `${(nx * 4.2).toFixed(2)}px`);
+      heroStage.style.setProperty('--hero-foreground-y', `${(ny * 2.8).toFixed(2)}px`);
+      heroStage.style.setProperty('--hero-pointer-x', `${pointer.x.toFixed(1)}px`);
+      heroStage.style.setProperty('--hero-pointer-y', `${pointer.y.toFixed(1)}px`);
+      heroStage.style.setProperty('--hero-pointer-opacity', (pointer.strength * .82).toFixed(3));
+    }
+
+    function animate(time) {
+      if (!isActive) return;
+      const delta = Math.min(42, lastTime ? time - lastTime : 16);
+      lastTime = time;
+      pointer.x += (pointer.targetX - pointer.x) * .075;
+      pointer.y += (pointer.targetY - pointer.y) * .075;
+      pointer.nx += (pointer.targetNx - pointer.nx) * .055;
+      pointer.ny += (pointer.targetNy - pointer.ny) * .055;
+      pointer.strength += (pointer.targetStrength - pointer.strength) * .065;
+      buttonBoost += (buttonBoostTarget - buttonBoost) * .06;
+      applyParallax();
+      if (!lastDrawTime || time - lastDrawTime >= 32) {
+        const drawDelta = Math.min(55, lastDrawTime ? time - lastDrawTime : delta);
+        drawParticles(time, drawDelta);
+        lastDrawTime = time;
+      }
+      animationFrame = window.requestAnimationFrame(animate);
+    }
+
+    function resetParallax() {
+      pointer.targetNx = 0;
+      pointer.targetNy = 0;
+      pointer.targetStrength = 0;
+      heroStage.style.setProperty('--hero-moon-x', '0px');
+      heroStage.style.setProperty('--hero-moon-y', '0px');
+      heroStage.style.setProperty('--hero-subject-x', '0px');
+      heroStage.style.setProperty('--hero-subject-y', '0px');
+      heroStage.style.setProperty('--hero-foreground-x', '0px');
+      heroStage.style.setProperty('--hero-foreground-y', '0px');
+      heroStage.style.setProperty('--hero-pointer-opacity', '0');
+    }
+
+    function setActive(nextActive) {
+      const shouldAnimate = Boolean(nextActive && !document.hidden && !reducedMotion.matches);
+      isActive = shouldAnimate;
+      heroAtmosphere.dataset.active = String(Boolean(nextActive));
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+      lastTime = 0;
+      lastDrawTime = 0;
+
+      if (shouldAnimate) {
+        updateButtonCenter();
+        animationFrame = window.requestAnimationFrame(animate);
+      } else {
+        buttonBoostTarget = 0;
+        resetParallax();
+        drawParticles(0, 0, true);
+      }
+    }
+
+    function handlePointerMove(event) {
+      if (width <= 800 || !finePointer.matches || reducedMotion.matches) return;
+      const rect = heroStage.getBoundingClientRect();
+      pointer.targetX = Math.max(0, Math.min(width, event.clientX - rect.left));
+      pointer.targetY = Math.max(0, Math.min(height, event.clientY - rect.top));
+      pointer.targetNx = (pointer.targetX / width - .5) * 2;
+      pointer.targetNy = (pointer.targetY / height - .5) * 2;
+      pointer.targetStrength = 1;
+    }
+
+    function handlePointerLeave() {
+      pointer.targetX = width / 2;
+      pointer.targetY = height / 2;
+      pointer.targetNx = 0;
+      pointer.targetNy = 0;
+      pointer.targetStrength = 0;
+    }
+
+    function updateMotionPreference() {
+      resizeCanvas();
+      createParticles();
+      setActive(state.step === 'hero');
+    }
+
+    heroStage.addEventListener('pointermove', handlePointerMove, { passive: true });
+    heroStage.addEventListener('pointerleave', handlePointerLeave);
+    enterExperience.addEventListener('pointerenter', () => {
+      updateButtonCenter();
+      buttonBoostTarget = 1;
+      heroAtmosphere.dataset.buttonAwake = 'true';
+    });
+    enterExperience.addEventListener('pointerleave', () => {
+      buttonBoostTarget = 0;
+      heroAtmosphere.dataset.buttonAwake = 'false';
+    });
+    enterExperience.addEventListener('focus', () => {
+      updateButtonCenter();
+      buttonBoostTarget = 1;
+    });
+    enterExperience.addEventListener('blur', () => { buttonBoostTarget = 0; });
+    reducedMotion.addEventListener('change', updateMotionPreference);
+    finePointer.addEventListener('change', updateMotionPreference);
+    document.addEventListener('visibilitychange', () => setActive(state.step === 'hero'));
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(resizeCanvas).observe(heroStage);
+    } else {
+      window.addEventListener('resize', resizeCanvas, { passive: true });
+    }
+    resizeCanvas();
+
+    return { setActive, resize: resizeCanvas };
+  }
+
   function setStep(nextStep) {
     state.step = nextStep;
     experience.dataset.step = nextStep;
@@ -92,6 +380,7 @@
     });
 
     window.scrollTo(0, 0);
+    heroMotion?.setActive(nextStep === 'hero');
 
     if (nextStep === 'ask') {
       schedule(() => questionInput.focus(), 320);
@@ -961,5 +1250,6 @@
     enterExperience.disabled = true;
   }
 
+  heroMotion = createHeroMotion();
   setStep('hero');
 })();
