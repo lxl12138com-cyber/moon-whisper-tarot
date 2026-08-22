@@ -484,6 +484,10 @@ h3 {
   pointer-events: none;
 }
 
+.circular-deck.is-selection-complete {
+  opacity: .58;
+}
+
 @keyframes circular-orbit {
   to { rotate: 360deg; }
 }
@@ -535,23 +539,24 @@ h3 {
 }
 
 .orbit-card.is-focused {
-  --focus-scale: 1.14;
+  --focus-scale: 1.045;
 }
 
 .orbit-card.is-focused .orbit-card-surface {
-  filter: brightness(1.16) saturate(1.04);
+  filter: brightness(1.1) contrast(1.03) saturate(1.02);
   box-shadow:
-    0 24px 48px rgba(0, 0, 0, .58),
-    0 0 22px rgba(224, 197, 142, .34);
+    0 22px 42px rgba(0, 0, 0, .56),
+    inset 0 0 0 1px rgba(224, 197, 142, .62),
+    0 0 12px rgba(224, 197, 142, .16);
 }
 
 .circular-deck.is-exploring .orbit-card:not(.is-focused) .orbit-card-surface {
-  filter: brightness(.62) saturate(.8);
+  filter: brightness(.74) saturate(.88);
 }
 
 .circular-deck.is-drawing .orbit-card:not(.is-picked) .orbit-card-surface,
 .circular-deck.is-selection-complete .orbit-card:not(.is-picked) .orbit-card-surface {
-  filter: brightness(.56) saturate(.74);
+  filter: brightness(.5) saturate(.72);
 }
 
 .orbit-card.is-picked {
@@ -565,7 +570,8 @@ h3 {
   pointer-events: none;
   box-shadow:
     0 24px 52px rgba(0, 0, 0, .62),
-    0 0 20px rgba(224, 197, 142, .18);
+    inset 0 0 0 1px rgba(224, 197, 142, .36),
+    0 0 14px rgba(224, 197, 142, .12);
 }
 
 .selected-slots {
@@ -586,6 +592,11 @@ h3 {
   transform: translate(-50%, -50%) scale(1);
 }
 
+.selected-slots.is-complete {
+  z-index: 14;
+  transform: translate(-50%, -50%) scale(1.045);
+}
+
 .slot {
   display: grid;
   justify-items: center;
@@ -593,6 +604,17 @@ h3 {
   color: #c5b99e;
   font-size: 10px;
   letter-spacing: .14em;
+  opacity: .46;
+  transition: opacity .35s ease, transform .35s ease;
+}
+
+.slot.is-current,
+.slot.is-locked {
+  opacity: 1;
+}
+
+.slot.is-current {
+  transform: translateY(-3px);
 }
 
 .slot-card {
@@ -615,6 +637,18 @@ h3 {
   animation: slot-card-settle .48s cubic-bezier(.2, .75, .2, 1);
 }
 
+.slot.is-current .slot-card {
+  border-color: var(--moon);
+  box-shadow: 0 0 14px rgba(224, 197, 142, .14);
+}
+
+.slot.is-locked .slot-card {
+  border-color: rgba(224, 197, 142, .72);
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, .42),
+    inset 0 0 0 1px rgba(224, 197, 142, .16);
+}
+
 @keyframes slot-card-settle {
   0% { transform: translateY(-8px) scale(1.06); }
   100% { transform: translateY(0) scale(1); }
@@ -632,6 +666,74 @@ h3 {
   letter-spacing: .12em;
 }
 
+.slot-state {
+  min-height: 11px;
+  color: #766f61;
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+
+.slot.is-current .slot-state {
+  color: #c7b993;
+}
+
+.slot.is-locked .slot-state {
+  color: var(--gold);
+}
+
+.deck-completion {
+  position: absolute;
+  z-index: 18;
+  bottom: 48px;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+  width: min(360px, 86vw);
+  text-align: center;
+  transform: translateX(-50%);
+  animation: deck-completion-enter .55s cubic-bezier(.2, .72, .2, 1) both;
+}
+
+.deck-completion[hidden] {
+  display: none;
+}
+
+.deck-completion p {
+  margin: 0;
+  color: var(--moon);
+  font-size: 15px;
+  letter-spacing: .12em;
+}
+
+.deck-completion p span {
+  display: block;
+  margin-top: 5px;
+  color: #998f7b;
+  font-size: 9px;
+  letter-spacing: .1em;
+}
+
+.deck-completion .gold-button {
+  min-width: 184px;
+  padding: 12px 26px;
+  background: rgba(5, 20, 17, .8);
+  font-size: 13px;
+}
+
+.deck-completion.is-activating {
+  opacity: .72;
+  transform: translateX(-50%) translateY(2px);
+  transition: opacity .3s ease, transform .3s ease;
+}
+
+@keyframes deck-completion-enter {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
 .deck-status {
   position: absolute;
   z-index: 11;
@@ -643,6 +745,7 @@ h3 {
   font-size: 11px;
   letter-spacing: .08em;
   text-align: right;
+  transition: color .3s ease, opacity .3s ease;
 }
 
 .reveal-step {
@@ -711,6 +814,16 @@ h3 {
   scroll-snap-align: start;
   scroll-snap-stop: always;
   text-align: left;
+  opacity: .52;
+  transition: opacity .55s ease;
+}
+
+.reveal-item.is-current {
+  opacity: 1;
+}
+
+.reveal-item.is-settled {
+  opacity: .72;
 }
 
 .position-label {
@@ -738,7 +851,7 @@ h3 {
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform 1s cubic-bezier(.2, .7, .2, 1);
+  transition: transform .88s cubic-bezier(.2, .7, .2, 1);
 }
 
 .flip-card.is-flipped .flip-inner {
@@ -753,6 +866,14 @@ h3 {
   border-radius: 9px;
   backface-visibility: hidden;
   box-shadow: 0 24px 70px rgba(0, 0, 0, .52), 0 0 24px rgba(224, 197, 142, .07);
+  transition: border-color .45s ease, box-shadow .45s ease;
+}
+
+.reveal-item.is-current .flip-face {
+  border-color: rgba(224, 197, 142, .86);
+  box-shadow:
+    0 26px 72px rgba(0, 0, 0, .56),
+    0 0 18px rgba(224, 197, 142, .11);
 }
 
 .flip-back {
@@ -810,7 +931,7 @@ h3 {
   margin: 0;
   opacity: 0;
   transform: translateY(7px);
-  transition: opacity .5s ease .35s, transform .5s ease .35s;
+  transition: opacity .5s ease .48s, transform .5s ease .48s;
 }
 
 .reveal-item.is-revealed .card-meta {
@@ -1104,7 +1225,7 @@ h3 {
   }
 
   .orbit-card.is-focused {
-    --focus-scale: 1.12;
+    --focus-scale: 1.035;
   }
 
   .selected-slots {
@@ -1115,6 +1236,25 @@ h3 {
   .slot-card {
     width: 42px;
     height: 75px;
+  }
+
+  .slot-state {
+    font-size: 7px;
+  }
+
+  .deck-completion {
+    bottom: 38px;
+    gap: 8px;
+  }
+
+  .deck-completion p {
+    font-size: 13px;
+  }
+
+  .deck-completion .gold-button {
+    min-width: 170px;
+    padding: 10px 22px;
+    font-size: 12px;
   }
 
   .deck-status {

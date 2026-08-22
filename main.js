@@ -34,6 +34,8 @@
   const ring = document.getElementById('circularDeck');
   const selectedSlots = document.getElementById('selectedSlots');
   const slots = [...document.querySelectorAll('.slot')];
+  const deckCompletion = document.getElementById('deckCompletion');
+  const revealCards = document.getElementById('revealCards');
   const revealStep = document.getElementById('reveal');
   const revealGrid = document.getElementById('revealGrid');
   const revealStatus = document.getElementById('revealStatus');
@@ -55,6 +57,7 @@
     deckPhase: 'deck',
     spreadComplete: false,
     isPicking: false,
+    readyToReveal: false,
     revealedCount: 0,
     runId: 0
   };
@@ -116,6 +119,14 @@
   }
 
   function updateDeckHeading(mode) {
+    if (mode === 'complete') {
+      deckStage.classList.remove('is-choosing');
+      deckEyebrow.textContent = '02 / THE CHOICE IS SEALED';
+      deckTitle.textContent = '三张牌已经落定';
+      deckSubtitle.textContent = 'Past · Present · Future｜你的选择已经完成。';
+      return;
+    }
+
     const choosing = mode === 'choose';
     deckStage.classList.toggle('is-choosing', choosing);
     deckEyebrow.textContent = choosing ? '02 / FOLLOW YOUR INTUITION' : '02 / THE DECK AWAKENS';
@@ -196,7 +207,48 @@
     updateDeckHeading('choose');
     ring.classList.remove('is-forming', 'is-stacked');
     ring.classList.add('is-active', 'is-orbiting');
-    deckStatus.textContent = '请选择第 1 张牌：Past / 过去';
+    selectedSlots.classList.add('is-active');
+    updateSelectionUi();
+  }
+
+  function updateSelectionUi() {
+    const selectedCount = state.selected.length;
+    const complete = selectedCount === 3;
+
+    slots.forEach((slot, index) => {
+      const status = slot.querySelector('.slot-state');
+      slot.classList.remove('is-current', 'is-pending', 'is-locked');
+
+      if (index < selectedCount) {
+        slot.classList.add('is-locked');
+        slot.dataset.state = 'locked';
+        status.textContent = '✓ 已选择';
+      } else if (index === selectedCount && !complete) {
+        slot.classList.add('is-current');
+        slot.dataset.state = 'current';
+        status.textContent = '等待选择';
+      } else {
+        slot.classList.add('is-pending');
+        slot.dataset.state = 'pending';
+        status.textContent = '未开始';
+      }
+
+      slot.setAttribute(
+        'aria-label',
+        `${positionLabels[index].en} ${positionLabels[index].zh}：${status.textContent}`
+      );
+    });
+
+    if (complete) {
+      deckStatus.textContent = '03 / 03 · 三张牌已经落定';
+      return;
+    }
+
+    const current = positionLabels[selectedCount];
+    const settled = selectedCount > 0
+      ? ` · ${positionLabels[selectedCount - 1].zh}已落定`
+      : ' · 跟随直觉选择一张牌';
+    deckStatus.textContent = `0${selectedCount + 1} / 03 · 当前目标：${current.zh}${settled}`;
   }
 
   function clearRingFocus() {
@@ -229,8 +281,8 @@
     const buttons = [...ring.querySelectorAll('.orbit-card')];
     const hoverIndex = Number(button.dataset.index);
     const compact = window.innerWidth <= 800;
-    const focusDistance = compact ? 24 : 34;
-    const maxShift = compact ? 8 : 14;
+    const focusDistance = compact ? 7 : 11;
+    const maxShift = compact ? 4 : 7;
     const focusAngle = Number(button.dataset.orbitAngle) * Math.PI / 180;
 
     ring.classList.add('is-exploring');
@@ -260,7 +312,7 @@
     if (button !== activeHoverCard || button.dataset.state !== 'hover') return;
     const rect = button.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-    button.style.setProperty('--pointer-tilt', `${((ratio - .5) * 5).toFixed(2)}deg`);
+    button.style.setProperty('--pointer-tilt', `${((ratio - .5) * 2).toFixed(2)}deg`);
   }
 
   function buildCircularDeck() {
@@ -312,6 +364,9 @@
         button.classList.add('is-picked');
         button.disabled = true;
         button.dataset.state = 'placed';
+      } else if (state.selected.length >= 3) {
+        button.disabled = true;
+        button.dataset.state = 'locked';
       }
 
       const surface = document.createElement('span');
@@ -354,8 +409,8 @@
     const centerX = ringRect.left;
     const centerY = ringRect.top;
     const radialLength = Math.max(1, Math.hypot(startCenterX - centerX, startCenterY - centerY));
-    const outwardX = (startCenterX - centerX) / radialLength * 42;
-    const outwardY = (startCenterY - centerY) / radialLength * 42;
+    const outwardX = (startCenterX - centerX) / radialLength * 22;
+    const outwardY = (startCenterY - centerY) / radialLength * 22;
     const centerDeltaX = centerX - startCenterX;
     const centerDeltaY = centerY - startCenterY;
     const deltaX = targetRect.left + targetRect.width / 2 - (startLeft + width / 2);
@@ -383,20 +438,26 @@
     return flyingCard.animate([
       {
         transform: `translate(0, 0) scale(1) rotate(${sourceAngle}deg)`,
-        filter: 'brightness(1.08)',
+        filter: 'brightness(1.04)',
         opacity: 1
       },
       {
-        transform: `translate(${outwardX}px, ${outwardY}px) scale(1.12) rotate(${sourceAngle * .72}deg)`,
-        filter: 'brightness(1.1)',
+        transform: `translate(0, 0) scale(1.035) rotate(${sourceAngle * .92}deg)`,
+        filter: 'brightness(1.08)',
         opacity: 1,
-        offset: .36
+        offset: .2
       },
       {
-        transform: `translate(${centerDeltaX}px, ${centerDeltaY}px) scale(1.2) rotate(0deg)`,
-        filter: 'brightness(1.2) drop-shadow(0 0 16px rgba(224, 197, 142, .32))',
+        transform: `translate(${outwardX}px, ${outwardY}px) scale(1.11) rotate(${sourceAngle * .62}deg)`,
+        filter: 'brightness(1.1) drop-shadow(0 10px 18px rgba(0, 0, 0, .34))',
         opacity: 1,
-        offset: .7
+        offset: .47
+      },
+      {
+        transform: `translate(${centerDeltaX}px, ${centerDeltaY}px) scale(1.14) rotate(0deg)`,
+        filter: 'brightness(1.14) drop-shadow(0 0 12px rgba(224, 197, 142, .2))',
+        opacity: 1,
+        offset: .68
       },
       {
         transform: `translate(${deltaX}px, ${deltaY}px) scale(${scale}) rotate(0deg)`,
@@ -404,8 +465,8 @@
         opacity: 1
       }
     ], {
-      duration: 1400,
-      easing: 'cubic-bezier(.18,.78,.2,1)',
+      duration: 1180,
+      easing: 'cubic-bezier(.2,.74,.18,1)',
       fill: 'forwards'
     }).finished.catch(() => {}).finally(() => {
       flyingCard.remove();
@@ -436,6 +497,8 @@
     selectedSlots.classList.add('is-active');
     ring.classList.add('is-drawing');
     ring.classList.remove('is-orbiting');
+    deckStatus.textContent = `0${position + 1} / 03 · ${positionLabels[position].zh}正在落位…`;
+    slot.querySelector('.slot-state').textContent = '正在落位';
 
     await animateCardToSlot(button, slot);
     if (runId !== state.runId) return;
@@ -444,13 +507,11 @@
     button.dataset.position = positionLabels[position].en.toLowerCase();
     slot.classList.add('is-filled');
     slot.dataset.cardId = String(card.id);
-    slot.dataset.state = 'placed';
     setDeckPhase('placed');
     ring.classList.remove('is-drawing');
+    updateSelectionUi();
 
     if (state.selected.length < 3) {
-      const next = positionLabels[state.selected.length];
-      deckStatus.textContent = `请选择第 ${state.selected.length + 1} 张牌：${next.en} / ${next.zh}`;
       state.isPicking = false;
       setDeckPhase('idle');
       ring.classList.add('is-orbiting');
@@ -458,9 +519,18 @@
     }
 
     state.isPicking = false;
+    state.readyToReveal = true;
+    ring.querySelectorAll('.orbit-card:not(:disabled)').forEach((remainingCard) => {
+      remainingCard.disabled = true;
+      remainingCard.dataset.state = 'locked';
+    });
     ring.classList.add('is-locked', 'is-selection-complete');
-    deckStatus.textContent = '三张牌已经进入轨道中心。即将滚动揭示命运。';
-    schedule(beginReveal, reducedMotion.matches ? 240 : 1200, runId);
+    ring.classList.remove('is-orbiting');
+    updateDeckHeading('complete');
+    selectedSlots.classList.add('is-complete');
+    deckStage.classList.add('is-complete');
+    deckCompletion.hidden = false;
+    revealCards.disabled = false;
   }
 
   function createFallbackFace(card, compact = false) {
@@ -485,7 +555,7 @@
     revealGrid.innerHTML = '';
     state.selected.forEach((card, index) => {
       const item = document.createElement('article');
-      item.className = 'reveal-item';
+      item.className = 'reveal-item is-waiting';
       item.dataset.position = positionLabels[index].en.toLowerCase();
       item.dataset.index = String(index);
       item.dataset.state = 'placed';
@@ -536,6 +606,12 @@
 
   function revealChapter(item, index) {
     if (!item || index !== state.revealedCount || item.dataset.state === 'revealed') return;
+    const items = [...revealGrid.querySelectorAll('.reveal-item')];
+    items.forEach((candidate, candidateIndex) => {
+      candidate.classList.toggle('is-current', candidateIndex === index);
+      candidate.classList.toggle('is-settled', candidateIndex < index);
+      candidate.classList.toggle('is-waiting', candidateIndex > index);
+    });
     const flip = item.querySelector('.flip-card');
     flip.classList.add('is-flipped');
     flip.dataset.state = 'revealed';
@@ -554,8 +630,8 @@
     }
   }
 
-  function beginReveal() {
-    if (state.selected.length !== 3 || state.step !== 'deck') return;
+  function openReveal(runId) {
+    if (runId !== state.runId || state.selected.length !== 3 || state.step !== 'deck') return;
     setDeckPhase('reveal');
     renderReveal();
     revealQuestion.textContent = `“${state.question}”`;
@@ -564,7 +640,6 @@
     setStep('reveal');
     revealStep.scrollTop = 0;
 
-    const runId = state.runId;
     const items = [...revealGrid.querySelectorAll('.reveal-item')];
     revealObserver?.disconnect();
     revealObserver = new IntersectionObserver((entries) => {
@@ -578,6 +653,16 @@
     });
     items.forEach((item) => revealObserver.observe(item));
     schedule(() => revealChapter(items[0], 0), reducedMotion.matches ? 80 : 420, runId);
+  }
+
+  function beginReveal() {
+    if (!state.readyToReveal || state.selected.length !== 3 || state.step !== 'deck') return;
+    const runId = state.runId;
+    state.readyToReveal = false;
+    revealCards.disabled = true;
+    deckCompletion.classList.add('is-activating');
+    deckStatus.textContent = '三张牌正在回应…';
+    schedule(() => openReveal(runId), reducedMotion.matches ? 80 : 420, runId);
   }
 
   function createResultCard(card, index) {
@@ -629,11 +714,18 @@
     );
     ring.innerHTML = '';
     setDeckPhase('deck');
-    selectedSlots.classList.remove('is-active');
-    slots.forEach((slot) => {
-      slot.classList.remove('is-filled', 'is-receiving');
+    selectedSlots.classList.remove('is-active', 'is-complete');
+    deckStage.classList.remove('is-complete');
+    deckCompletion.hidden = true;
+    deckCompletion.classList.remove('is-activating');
+    revealCards.disabled = true;
+    slots.forEach((slot, index) => {
+      slot.classList.remove('is-filled', 'is-receiving', 'is-current', 'is-pending', 'is-locked');
       delete slot.dataset.cardId;
       delete slot.dataset.state;
+      const status = slot.querySelector('.slot-state');
+      status.textContent = index === 0 ? '等待选择' : '未开始';
+      slot.removeAttribute('aria-label');
     });
     revealGrid.innerHTML = '';
     revealStep.scrollTop = 0;
@@ -652,6 +744,7 @@
     state.deckPhase = 'deck';
     state.spreadComplete = false;
     state.isPicking = false;
+    state.readyToReveal = false;
     state.revealedCount = 0;
     resetReadingUi();
     buildCircularDeck();
@@ -671,6 +764,7 @@
     state.deckPhase = 'deck';
     state.spreadComplete = false;
     state.isPicking = false;
+    state.readyToReveal = false;
     state.revealedCount = 0;
     resetReadingUi();
 
@@ -702,11 +796,19 @@
   });
 
   drawAgain.addEventListener('click', resetToAsk);
+  revealCards.addEventListener('click', beginReveal);
 
   window.addEventListener('resize', () => {
     if (state.step !== 'deck' || !state.spreadComplete || !state.deck.length) return;
     buildCircularDeck();
-    ring.classList.add('is-active', 'is-orbiting');
+    ring.classList.add('is-active');
+    if (state.readyToReveal || state.selected.length === 3) {
+      ring.classList.add('is-locked', 'is-selection-complete');
+      ring.classList.remove('is-orbiting');
+    } else {
+      ring.classList.add('is-orbiting');
+    }
+    updateSelectionUi();
   });
 
   if (cards.length !== 78) {

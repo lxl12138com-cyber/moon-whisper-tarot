@@ -6,7 +6,7 @@
   <title>Moon Whisper Tarot｜听见月亮的指引</title>
   <meta name="description" content="在月夜森林中提问、抽取三张塔罗牌，并听见月亮的指引。" />
   <link rel="icon" type="image/webp" href="assets/cards/back.webp" />
-  <link rel="stylesheet" href="styles.css?v=hero-hierarchy-1" />
+  <link rel="stylesheet" href="styles.css?v=draw-feedback-2" />
 </head>
 <body>
   <header class="site-header">
@@ -65,9 +65,19 @@
       <canvas id="deckCanvas" aria-label="塔罗牌从牌堆自动展开为扇形"></canvas>
       <div id="circularDeck" class="circular-deck" aria-label="78 张塔罗牌环形空间"></div>
       <div class="selected-slots" id="selectedSlots" aria-label="过去、现在、未来三张牌位">
-        <div class="slot" data-slot="0"><span class="slot-card">☾</span><b>PAST</b><small>过去</small></div>
-        <div class="slot" data-slot="1"><span class="slot-card">☾</span><b>PRESENT</b><small>现在</small></div>
-        <div class="slot" data-slot="2"><span class="slot-card">☾</span><b>FUTURE</b><small>未来</small></div>
+        <div class="slot" data-slot="0">
+          <span class="slot-card">☾</span><b>PAST</b><small>过去</small><em class="slot-state">等待选择</em>
+        </div>
+        <div class="slot" data-slot="1">
+          <span class="slot-card">☾</span><b>PRESENT</b><small>现在</small><em class="slot-state">未开始</em>
+        </div>
+        <div class="slot" data-slot="2">
+          <span class="slot-card">☾</span><b>FUTURE</b><small>未来</small><em class="slot-state">未开始</em>
+        </div>
+      </div>
+      <div class="deck-completion" id="deckCompletion" hidden>
+        <p>你的选择已经完成<span>过去 · 现在 · 未来</span></p>
+        <button type="button" class="gold-button" id="revealCards">揭示牌面</button>
       </div>
       <p class="deck-status" id="deckStatus" aria-live="polite">正在唤醒牌阵…</p>
     </section>
@@ -106,6 +116,6 @@
   </main>
 
   <script src="data/cards-data.js?v=stage5-3"></script>
-  <script src="main.js?v=stage5-3"></script>
+  <script src="main.js?v=draw-feedback-2"></script>
 </body>
 </html>
