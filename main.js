@@ -22,7 +22,6 @@
   const heroAtmosphere = document.getElementById('heroAtmosphere');
   const heroFireflies = document.getElementById('heroFireflies');
   const enterExperience = document.getElementById('enterExperience');
-  const heroStartHotspot = document.getElementById('heroStartHotspot');
   const questionForm = document.getElementById('questionForm');
   const questionInput = document.getElementById('questionInput');
   const questionCount = document.getElementById('questionCount');
@@ -60,7 +59,6 @@
   const scheduled = new Set();
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-  const desktopFinalHero = window.matchMedia('(min-width: 1024px)');
   let activeHoverCard = null;
   let heroMotion = null;
 
@@ -299,12 +297,7 @@
     }
 
     function setActive(nextActive) {
-      const shouldAnimate = Boolean(
-        nextActive &&
-        !desktopFinalHero.matches &&
-        !document.hidden &&
-        !reducedMotion.matches
-      );
+      const shouldAnimate = Boolean(nextActive && !document.hidden && !reducedMotion.matches);
       isActive = shouldAnimate;
       heroAtmosphere.dataset.active = String(Boolean(nextActive));
       if (animationFrame) window.cancelAnimationFrame(animationFrame);
@@ -364,7 +357,6 @@
     enterExperience.addEventListener('blur', () => { buttonBoostTarget = 0; });
     reducedMotion.addEventListener('change', updateMotionPreference);
     finePointer.addEventListener('change', updateMotionPreference);
-    desktopFinalHero.addEventListener('change', updateMotionPreference);
     document.addEventListener('visibilitychange', () => setActive(state.step === 'hero'));
     if ('ResizeObserver' in window) {
       new ResizeObserver(resizeCanvas).observe(heroStage);
@@ -378,7 +370,6 @@
 
   function setStep(nextStep) {
     state.step = nextStep;
-    document.body.dataset.step = nextStep;
     experience.dataset.step = nextStep;
     stepIndicator.textContent = stepLabels[nextStep] || '';
 
@@ -1212,12 +1203,7 @@
     setStep('ask');
   }
 
-  function enterTarotExperience() {
-    setStep('ask');
-  }
-
-  enterExperience.addEventListener('click', enterTarotExperience);
-  heroStartHotspot.addEventListener('click', enterTarotExperience);
+  enterExperience.addEventListener('click', () => setStep('ask'));
 
   questionInput.addEventListener('input', () => {
     const value = questionInput.value;
@@ -1262,7 +1248,6 @@
   if (cards.length !== 78) {
     questionError.textContent = `牌库数据异常：当前读取到 ${cards.length} 张牌。`;
     enterExperience.disabled = true;
-    heroStartHotspot.disabled = true;
   }
 
   heroMotion = createHeroMotion();
