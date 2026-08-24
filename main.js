@@ -59,6 +59,7 @@
   const cautionActions = document.getElementById('cautionActions');
   const whisperText = document.getElementById('whisperText');
   const drawAgain = document.getElementById('drawAgain');
+  const cardHoverSound = document.getElementById('cardHoverSound');
 
   const scheduled = new Set();
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -71,6 +72,9 @@
   let heroVideoController = null;
   let askReturnWheelDistance = 0;
   let askReturnWheelResetTimer = 0;
+  let cardHoverSoundUnlocked = false;
+  let lastCardHoverSoundAt = 0;
+  let cardHoverSoundCount = 0;
 
   const state = {
     step: 'hero',
@@ -844,6 +848,55 @@
     deckStatus.textContent = `0${selectedCount + 1} / 03 · ${current.zh}正在等待`;
   }
 
+  function unlockCardHoverSound() {
+    if (!cardHoverSound || cardHoverSoundUnlocked) return;
+
+    const previousVolume = cardHoverSound.volume;
+    cardHoverSound.volume = 0;
+    const playAttempt = cardHoverSound.play();
+
+    if (!playAttempt) return;
+    playAttempt.then(() => {
+      cardHoverSound.pause();
+      cardHoverSound.currentTime = 0;
+      cardHoverSound.volume = previousVolume;
+      cardHoverSoundUnlocked = true;
+      ring.dataset.hoverSoundState = 'ready';
+    }).catch(() => {
+      cardHoverSound.volume = previousVolume;
+    });
+  }
+
+  function playCardHoverSound(button, event) {
+    if (
+      !cardHoverSound ||
+      !finePointer.matches ||
+      event.pointerType === 'touch' ||
+      state.step !== 'deck' ||
+      !state.spreadComplete ||
+      state.isPicking ||
+      button.disabled ||
+      button.dataset.state !== 'deck'
+    ) return;
+
+    const now = window.performance.now();
+    if (now - lastCardHoverSoundAt < 90) return;
+    lastCardHoverSoundAt = now;
+
+    cardHoverSound.pause();
+    cardHoverSound.currentTime = 0;
+    cardHoverSound.volume = .22;
+    cardHoverSound.playbackRate = .96 + Math.random() * .08;
+    cardHoverSound.play().then(() => {
+      cardHoverSoundCount += 1;
+      ring.dataset.hoverSoundState = 'playing';
+      ring.dataset.hoverSoundCount = String(cardHoverSoundCount);
+      ring.dataset.hoverSoundCard = button.dataset.cardId;
+    }).catch(() => {
+      ring.dataset.hoverSoundState = 'blocked';
+    });
+  }
+
   function holdSettledSelection(position) {
     slots.forEach((slot, index) => {
       const status = slot.querySelector('.slot-state');
@@ -990,7 +1043,10 @@
       surface.className = 'orbit-card-surface';
       surface.setAttribute('aria-hidden', 'true');
       button.appendChild(surface);
-      button.addEventListener('pointerenter', () => setRingFocus(button));
+      button.addEventListener('pointerenter', (event) => {
+        playCardHoverSound(button, event);
+        setRingFocus(button);
+      });
       button.addEventListener('pointermove', (event) => updateHoverTilt(event, button));
       button.addEventListener('pointerleave', () => {
         if (activeHoverCard === button) clearRingFocus();
@@ -1491,6 +1547,8 @@
     setStep('ask');
   }
 
+  document.addEventListener('pointerdown', unlockCardHoverSound, { capture: true });
+  document.addEventListener('keydown', unlockCardHoverSound, { capture: true });
   askStep?.addEventListener('wheel', handleAskWheel, { passive: false });
   enterExperience.addEventListener('click', () => setStep('ask'));
 
