@@ -21,6 +21,9 @@
   const heroStage = document.getElementById('hero');
   const heroAtmosphere = document.getElementById('heroAtmosphere');
   const heroFireflies = document.getElementById('heroFireflies');
+  const moonLoading = document.getElementById('moonLoading');
+  const heroIntroVideo = document.getElementById('heroIntroVideo');
+  const heroLoopVideo = document.getElementById('heroLoopVideo');
   const enterExperience = document.getElementById('enterExperience');
   const questionForm = document.getElementById('questionForm');
   const questionInput = document.getElementById('questionInput');
@@ -59,8 +62,12 @@
   const scheduled = new Set();
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const heroImageUrl = 'assets/production/hero-lake.webp';
+  const loadingShownKey = 'moonWhisperLoadingShown';
+  const introPlayedKey = 'moonWhisperIntroPlayed';
   let activeHoverCard = null;
   let heroMotion = null;
+  let heroVideoController = null;
 
   const state = {
     step: 'hero',
@@ -83,6 +90,239 @@
       [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
     }
     return shuffled;
+  }
+
+  function readSessionFlag(key) {
+    try {
+      return window.sessionStorage.getItem(key) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  function writeSessionFlag(key) {
+    try {
+      window.sessionStorage.setItem(key, 'true');
+    } catch {}
+  }
+
+  function createHeroVideoController() {
+    if (!heroStage || !moonLoading || !heroIntroVideo || !heroLoopVideo) {
+      return { start() {}, setActive() {} };
+    }
+
+    let phase = 'idle';
+    let loopReadyPromise = null;
+
+    function sleep(delay) {
+      return new Promise((resolve) => window.setTimeout(resolve, delay));
+    }
+
+    function setPhase(nextPhase) {
+      phase = nextPhase;
+      heroStage.dataset.videoPhase = nextPhase;
+      document.documentElement.dataset.homeMediaState = nextPhase;
+    }
+
+    function preloadImage(url, timeout = 4200) {
+      return new Promise((resolve) => {
+        const image = new Image();
+        let settled = false;
+        const finish = (ready) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timer);
+          image.onload = null;
+          image.onerror = null;
+          resolve(ready);
+        };
+        const timer = window.setTimeout(() => finish(false), timeout);
+        image.onload = () => finish(true);
+        image.onerror = () => finish(false);
+        image.src = url;
+        if (image.complete && image.naturalWidth > 0) finish(true);
+      });
+    }
+
+    function waitForVideo(video, timeout = 5600) {
+      if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) return Promise.resolve(true);
+
+      return new Promise((resolve) => {
+        const source = video.querySelector('source');
+        let settled = false;
+        const finish = (ready) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timer);
+          video.removeEventListener('canplay', handleReady);
+          video.removeEventListener('error', handleError);
+          source?.removeEventListener('error', handleError);
+          resolve(ready);
+        };
+        const handleReady = () => finish(true);
+        const handleError = () => finish(false);
+        const timer = window.setTimeout(() => finish(video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA), timeout);
+        video.addEventListener('canplay', handleReady, { once: true });
+        video.addEventListener('error', handleError, { once: true });
+        source?.addEventListener('error', handleError, { once: true });
+      });
+    }
+
+    async function playVideo(video) {
+      video.muted = true;
+      video.playsInline = true;
+      try {
+        const playRequest = video.play();
+        if (playRequest) await playRequest;
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function hideLoadingImmediately() {
+      moonLoading.hidden = true;
+      moonLoading.setAttribute('aria-hidden', 'true');
+      moonLoading.dataset.state = 'skipped';
+      document.documentElement.classList.add('moon-loading-skip');
+    }
+
+    async function leaveLoading() {
+      moonLoading.dataset.state = 'ready';
+      moonLoading.classList.add('is-ready');
+      await sleep(reducedMotion.matches ? 20 : 320);
+      moonLoading.dataset.state = 'leaving';
+      moonLoading.classList.add('is-leaving');
+      await sleep(reducedMotion.matches ? 20 : 740);
+      moonLoading.hidden = true;
+      moonLoading.setAttribute('aria-hidden', 'true');
+      moonLoading.dataset.state = 'complete';
+      document.documentElement.classList.add('moon-loading-skip');
+    }
+
+    function prepareIntroView() {
+      document.body.classList.add('is-intro-playing');
+      heroMotion?.setActive(false);
+    }
+
+    function revealHome() {
+      document.body.classList.remove('is-intro-playing');
+      heroStage.classList.add('is-home-ready');
+      heroMotion?.setActive(state.step === 'hero');
+    }
+
+    function showStaticFallback() {
+      heroIntroVideo.pause();
+      heroLoopVideo.pause();
+      heroIntroVideo.classList.remove('is-active');
+      heroLoopVideo.classList.remove('is-active');
+      heroStage.classList.remove('has-video');
+      setPhase('fallback');
+      revealHome();
+      return false;
+    }
+
+    async function startLoop() {
+      setPhase('loop-pending');
+      const loopReady = await loopReadyPromise;
+      if (!loopReady) return showStaticFallback();
+
+      try {
+        heroLoopVideo.currentTime = 0;
+      } catch {}
+      const loopStarted = await playVideo(heroLoopVideo);
+      if (!loopStarted) return showStaticFallback();
+
+      heroStage.classList.add('has-video');
+      heroLoopVideo.classList.add('is-active');
+      setPhase('loop');
+      revealHome();
+      window.setTimeout(() => {
+        heroIntroVideo.pause();
+        heroIntroVideo.classList.remove('is-active');
+      }, reducedMotion.matches ? 0 : 820);
+      return true;
+    }
+
+    function waitForIntroEnd() {
+      return new Promise((resolve) => {
+        let settled = false;
+        const finish = (reason) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timer);
+          heroIntroVideo.removeEventListener('ended', handleEnded);
+          heroIntroVideo.removeEventListener('error', handleError);
+          resolve(reason);
+        };
+        const handleEnded = () => finish('ended');
+        const handleError = () => finish('error');
+        const expectedDuration = Number.isFinite(heroIntroVideo.duration) ? heroIntroVideo.duration : 8.1;
+        const timer = window.setTimeout(() => finish('timeout'), Math.ceil(expectedDuration * 1000) + 2400);
+        heroIntroVideo.addEventListener('ended', handleEnded, { once: true });
+        heroIntroVideo.addEventListener('error', handleError, { once: true });
+      });
+    }
+
+    async function playIntro() {
+      try {
+        heroIntroVideo.currentTime = 0;
+      } catch {}
+      const introStarted = await playVideo(heroIntroVideo);
+      if (!introStarted) return false;
+
+      heroStage.classList.add('has-video');
+      heroIntroVideo.classList.add('is-active');
+      setPhase('intro');
+      await leaveLoading();
+      await waitForIntroEnd();
+      writeSessionFlag(introPlayedKey);
+      await startLoop();
+      return true;
+    }
+
+    async function start() {
+      heroIntroVideo.muted = true;
+      heroLoopVideo.muted = true;
+      heroIntroVideo.load();
+      heroLoopVideo.load();
+
+      const heroReadyPromise = preloadImage(heroImageUrl);
+      const introReadyPromise = waitForVideo(heroIntroVideo);
+      loopReadyPromise = waitForVideo(heroLoopVideo);
+
+      const returningVisit = readSessionFlag(loadingShownKey) || readSessionFlag(introPlayedKey);
+      if (returningVisit) {
+        hideLoadingImmediately();
+        await startLoop();
+        return;
+      }
+
+      writeSessionFlag(loadingShownKey);
+      prepareIntroView();
+      moonLoading.hidden = false;
+      moonLoading.removeAttribute('aria-hidden');
+      moonLoading.dataset.state = 'loading';
+
+      const minimumDisplay = sleep(reducedMotion.matches ? 300 : 900);
+      const [introReady] = await Promise.all([introReadyPromise, heroReadyPromise, minimumDisplay]);
+
+      if (introReady && await playIntro()) return;
+
+      writeSessionFlag(introPlayedKey);
+      await startLoop();
+      await leaveLoading();
+    }
+
+    function setActive(nextActive) {
+      if (!nextActive) {
+        if (phase === 'loop') heroLoopVideo.pause();
+        return;
+      }
+      if (phase === 'loop' && heroLoopVideo.paused) playVideo(heroLoopVideo);
+    }
+
+    return { start, setActive };
   }
 
   function createHeroMotion() {
@@ -381,6 +621,7 @@
 
     window.scrollTo(0, 0);
     heroMotion?.setActive(nextStep === 'hero');
+    heroVideoController?.setActive(nextStep === 'hero');
 
     if (nextStep === 'ask') {
       schedule(() => questionInput.focus(), 320);
@@ -1251,5 +1492,23 @@
   }
 
   heroMotion = createHeroMotion();
+  heroVideoController = createHeroVideoController();
   setStep('hero');
+  heroVideoController.start()?.catch(() => {
+    writeSessionFlag(loadingShownKey);
+    writeSessionFlag(introPlayedKey);
+    heroIntroVideo?.pause();
+    heroLoopVideo?.pause();
+    heroIntroVideo?.classList.remove('is-active');
+    heroLoopVideo?.classList.remove('is-active');
+    heroStage?.classList.remove('has-video');
+    if (heroStage) heroStage.dataset.videoPhase = 'fallback';
+    document.documentElement.dataset.homeMediaState = 'fallback';
+    document.body.classList.remove('is-intro-playing');
+    if (moonLoading) {
+      moonLoading.hidden = true;
+      moonLoading.setAttribute('aria-hidden', 'true');
+      moonLoading.dataset.state = 'failed';
+    }
+  });
 })();

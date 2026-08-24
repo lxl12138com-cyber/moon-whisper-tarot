@@ -6,9 +6,33 @@
   <title>Moon Whisper Tarot｜听见月亮的指引</title>
   <meta name="description" content="在月夜森林中提问、抽取三张塔罗牌，并听见月亮的指引。" />
   <link rel="icon" type="image/webp" href="assets/cards/back.webp" />
-  <link rel="stylesheet" href="styles.css?v=hero-motion-6" />
+  <link rel="preload" as="image" href="assets/production/hero-lake.webp" fetchpriority="high" />
+  <script>
+    (() => {
+      try {
+        const hasEntered = sessionStorage.getItem('moonWhisperLoadingShown') === 'true'
+          || sessionStorage.getItem('moonWhisperIntroPlayed') === 'true';
+        document.documentElement.classList.toggle('moon-loading-skip', hasEntered);
+      } catch {}
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css?v=home-loading-1" />
 </head>
 <body>
+  <div class="moon-loading" id="moonLoading" data-state="initial" role="status" aria-live="polite" aria-label="月光正在显现">
+    <div class="moon-loading-mist" aria-hidden="true"></div>
+    <div class="moon-loading-scene" aria-hidden="true">
+      <svg class="moon-loading-crescent" viewBox="0 0 160 160" focusable="false">
+        <path class="moon-loading-crescent-glow" d="M 108 31 A 53 53 0 1 0 111 130" />
+        <path class="moon-loading-crescent-line" d="M 108 31 A 53 53 0 1 0 111 130" />
+      </svg>
+      <span class="moon-loading-firefly moon-loading-firefly-one"></span>
+      <span class="moon-loading-firefly moon-loading-firefly-two"></span>
+      <span class="moon-loading-firefly moon-loading-firefly-three"></span>
+    </div>
+    <span class="sr-only">正在准备月夜首页</span>
+  </div>
+
   <header class="site-header">
     <div class="brand-mark" aria-hidden="true">☾</div>
     <div class="brand-small">Moon Whisper Tarot</div>
@@ -17,6 +41,16 @@
 
   <main class="experience" id="experience" data-step="hero">
     <section class="experience-step hero is-active" id="hero" data-step="hero" aria-hidden="false">
+      <div class="hero-video-layer" id="heroVideoLayer" aria-hidden="true">
+        <video class="hero-video hero-video-intro" id="heroIntroVideo" muted playsinline preload="auto"
+          poster="assets/production/hero-lake.webp" tabindex="-1">
+          <source src="assets/production/hero-intro.mp4" type="video/mp4" />
+        </video>
+        <video class="hero-video hero-video-loop" id="heroLoopVideo" muted playsinline loop preload="auto"
+          poster="assets/production/hero-lake.webp" tabindex="-1">
+          <source src="assets/production/hero-loop.mp4" type="video/mp4" />
+        </video>
+      </div>
       <div class="hero-atmosphere" id="heroAtmosphere" aria-hidden="true">
         <div class="hero-depth hero-depth-moon"></div>
         <div class="hero-depth hero-depth-subject"></div>
@@ -193,9 +227,9 @@
     </section>
   </main>
 
-  <script src="data/cards-data.js?v=hero-motion-6"></script>
-  <script src="data/reading-data.js?v=hero-motion-6"></script>
-  <script src="reading-engine.js?v=hero-motion-6"></script>
-  <script src="main.js?v=hero-motion-6"></script>
+  <script src="data/cards-data.js?v=home-loading-1"></script>
+  <script src="data/reading-data.js?v=home-loading-1"></script>
+  <script src="reading-engine.js?v=home-loading-1"></script>
+  <script src="main.js?v=home-loading-1"></script>
 </body>
 </html>
