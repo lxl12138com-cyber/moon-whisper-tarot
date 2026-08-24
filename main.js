@@ -169,13 +169,23 @@
     }
 
     async function playVideo(video) {
+      video.autoplay = true;
       video.muted = true;
+      video.defaultMuted = true;
+      video.volume = 0;
       video.playsInline = true;
+      video.setAttribute('muted', '');
+      video.setAttribute('playsinline', '');
+      video.dataset.playState = 'pending';
       try {
         const playRequest = video.play();
         if (playRequest) await playRequest;
+        video.dataset.playState = 'playing';
+        delete video.dataset.playError;
         return true;
-      } catch {
+      } catch (error) {
+        video.dataset.playState = 'blocked';
+        video.dataset.playError = error?.name || 'unknown';
         return false;
       }
     }
