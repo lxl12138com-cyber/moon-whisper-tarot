@@ -7,7 +7,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "0",
     "nameEn": "The Fool",
     "nameZh": "愚者",
-    "image": "assets/cards/major/00-the-fool.webp",
+    "image": "assets/cards/major/00-the-fool.png",
     "assetStatus": "ready",
     "keywords": [
       "Beginnings",
@@ -28,7 +28,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "I",
     "nameEn": "The Magician",
     "nameZh": "魔术师",
-    "image": "assets/cards/major/01-the-magician.webp",
+    "image": "assets/cards/major/01-the-magician.png",
     "assetStatus": "ready",
     "keywords": [
       "Will",
@@ -49,7 +49,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "II",
     "nameEn": "The High Priestess",
     "nameZh": "女祭司",
-    "image": "assets/cards/major/02-the-high-priestess.webp",
+    "image": "assets/cards/major/02-the-high-priestess.png",
     "assetStatus": "ready",
     "keywords": [
       "Intuition",
@@ -70,7 +70,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "III",
     "nameEn": "The Empress",
     "nameZh": "皇后",
-    "image": "assets/cards/major/03-the-empress.webp",
+    "image": "assets/cards/major/03-the-empress.png",
     "assetStatus": "ready",
     "keywords": [
       "Nurture",
@@ -91,7 +91,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "IV",
     "nameEn": "The Emperor",
     "nameZh": "皇帝",
-    "image": "assets/cards/major/04-the-emperor.webp",
+    "image": "assets/cards/major/04-the-emperor.png",
     "assetStatus": "ready",
     "keywords": [
       "Structure",
@@ -112,7 +112,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "V",
     "nameEn": "The Hierophant",
     "nameZh": "教皇",
-    "image": "assets/cards/major/05-the-hierophant.webp",
+    "image": "assets/cards/major/05-the-hierophant.png",
     "assetStatus": "ready",
     "keywords": [
       "Tradition",
@@ -133,7 +133,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "VI",
     "nameEn": "The Lovers",
     "nameZh": "恋人",
-    "image": "assets/cards/major/06-the-lovers.webp",
+    "image": "assets/cards/major/06-the-lovers.png",
     "assetStatus": "ready",
     "keywords": [
       "Choice",
@@ -154,7 +154,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "VII",
     "nameEn": "The Chariot",
     "nameZh": "战车",
-    "image": "assets/cards/major/07-the-chariot.webp",
+    "image": "assets/cards/major/07-the-chariot.png",
     "assetStatus": "ready",
     "keywords": [
       "Drive",
@@ -175,7 +175,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "VIII",
     "nameEn": "Strength",
     "nameZh": "力量",
-    "image": "assets/cards/major/08-strength.webp",
+    "image": "assets/cards/major/08-strength.png",
     "assetStatus": "ready",
     "keywords": [
       "Courage",
@@ -196,7 +196,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "IX",
     "nameEn": "The Hermit",
     "nameZh": "隐士",
-    "image": "assets/cards/major/09-the-hermit.webp",
+    "image": "assets/cards/major/09-the-hermit.png",
     "assetStatus": "ready",
     "keywords": [
       "Solitude",
@@ -217,7 +217,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "X",
     "nameEn": "Wheel of Fortune",
     "nameZh": "命运之轮",
-    "image": "assets/cards/major/10-wheel-of-fortune.webp",
+    "image": "assets/cards/major/10-wheel-of-fortune.png",
     "assetStatus": "ready",
     "keywords": [
       "Cycles",
@@ -238,7 +238,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XI",
     "nameEn": "Justice",
     "nameZh": "正义",
-    "image": "assets/cards/major/11-justice.webp",
+    "image": "assets/cards/major/11-justice.png",
     "assetStatus": "ready",
     "keywords": [
       "Truth",
@@ -259,7 +259,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XII",
     "nameEn": "The Hanged Man",
     "nameZh": "倒吊人",
-    "image": "assets/cards/major/12-the-hanged-man.webp",
+    "image": "assets/cards/major/12-the-hanged-man.png",
     "assetStatus": "ready",
     "keywords": [
       "Pause",
@@ -280,7 +280,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XIII",
     "nameEn": "Death",
     "nameZh": "死神",
-    "image": "assets/cards/major/13-death.webp",
+    "image": "assets/cards/major/13-death.png",
     "assetStatus": "ready",
     "keywords": [
       "Ending",
@@ -301,7 +301,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XIV",
     "nameEn": "Temperance",
     "nameZh": "节制",
-    "image": "assets/cards/major/14-temperance.webp",
+    "image": "assets/cards/major/14-temperance.png",
     "assetStatus": "ready",
     "keywords": [
       "Balance",
@@ -322,7 +322,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XV",
     "nameEn": "The Devil",
     "nameZh": "恶魔",
-    "image": "assets/cards/major/15-the-devil.webp",
+    "image": "assets/cards/major/15-the-devil.png",
     "assetStatus": "ready",
     "keywords": [
       "Attachment",
@@ -343,7 +343,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XVI",
     "nameEn": "The Tower",
     "nameZh": "高塔",
-    "image": "assets/cards/major/16-the-tower.webp",
+    "image": "assets/cards/major/16-the-tower.png",
     "assetStatus": "ready",
     "keywords": [
       "Shock",
@@ -364,7 +364,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XVII",
     "nameEn": "The Star",
     "nameZh": "星星",
-    "image": "assets/cards/major/17-the-star.webp",
+    "image": "assets/cards/major/17-the-star.png",
     "assetStatus": "ready",
     "keywords": [
       "Hope",
@@ -385,7 +385,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XVIII",
     "nameEn": "The Moon",
     "nameZh": "月亮",
-    "image": "assets/cards/major/18-the-moon.webp",
+    "image": "assets/cards/major/18-the-moon.png",
     "assetStatus": "ready",
     "keywords": [
       "Dream",
@@ -406,7 +406,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XIX",
     "nameEn": "The Sun",
     "nameZh": "太阳",
-    "image": "assets/cards/major/19-the-sun.webp",
+    "image": "assets/cards/major/19-the-sun.png",
     "assetStatus": "ready",
     "keywords": [
       "Joy",
@@ -427,7 +427,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XX",
     "nameEn": "Judgement",
     "nameZh": "审判",
-    "image": "assets/cards/major/20-judgement.webp",
+    "image": "assets/cards/major/20-judgement.png",
     "assetStatus": "ready",
     "keywords": [
       "Awakening",
@@ -448,7 +448,7 @@ window.MOON_WHISPER_CARDS = [
     "number": "XXI",
     "nameEn": "The World",
     "nameZh": "世界",
-    "image": "assets/cards/major/21-the-world.webp",
+    "image": "assets/cards/major/21-the-world.png",
     "assetStatus": "ready",
     "keywords": [
       "Completion",
