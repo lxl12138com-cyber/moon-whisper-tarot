@@ -25,6 +25,7 @@
   const heroIntroVideo = document.getElementById('heroIntroVideo');
   const heroLoopVideo = document.getElementById('heroLoopVideo');
   const enterExperience = document.getElementById('enterExperience');
+  const askStep = document.getElementById('ask');
   const questionForm = document.getElementById('questionForm');
   const questionInput = document.getElementById('questionInput');
   const questionCount = document.getElementById('questionCount');
@@ -68,6 +69,8 @@
   let activeHoverCard = null;
   let heroMotion = null;
   let heroVideoController = null;
+  let askReturnWheelDistance = 0;
+  let askReturnWheelResetTimer = 0;
 
   const state = {
     step: 'hero',
@@ -634,9 +637,43 @@
     heroVideoController?.setActive(nextStep === 'hero');
 
     if (nextStep === 'ask') {
-      schedule(() => questionInput.focus(), 320);
+      schedule(() => {
+        if (state.step === 'ask') questionInput.focus();
+      }, 320);
     }
 
+  }
+
+  function resetAskReturnWheelGesture() {
+    askReturnWheelDistance = 0;
+    if (askReturnWheelResetTimer) {
+      window.clearTimeout(askReturnWheelResetTimer);
+      askReturnWheelResetTimer = 0;
+    }
+  }
+
+  function handleAskWheel(event) {
+    if (state.step !== 'ask' || !askStep || askStep.scrollTop > 2 || event.deltaY >= 0) {
+      resetAskReturnWheelGesture();
+      return;
+    }
+
+    const unit = event.deltaMode === WheelEvent.DOM_DELTA_LINE
+      ? 16
+      : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+        ? window.innerHeight
+        : 1;
+
+    askReturnWheelDistance += Math.abs(event.deltaY * unit);
+    if (askReturnWheelResetTimer) window.clearTimeout(askReturnWheelResetTimer);
+    askReturnWheelResetTimer = window.setTimeout(resetAskReturnWheelGesture, 240);
+
+    if (askReturnWheelDistance < 56) return;
+
+    event.preventDefault();
+    resetAskReturnWheelGesture();
+    questionInput.blur();
+    setStep('hero');
   }
 
   function schedule(callback, delay, runId = state.runId) {
@@ -1454,6 +1491,7 @@
     setStep('ask');
   }
 
+  askStep?.addEventListener('wheel', handleAskWheel, { passive: false });
   enterExperience.addEventListener('click', () => setStep('ask'));
 
   questionInput.addEventListener('input', () => {
