@@ -897,7 +897,7 @@
     backgroundMusic.dataset.fadeTarget = safeTarget.toFixed(3);
 
     const tick = (now) => {
-      const progress = Math.min(1, (now - startedAt) / safeDuration);
+      const progress = Math.max(0, Math.min(1, (now - startedAt) / safeDuration));
       const eased = 1 - Math.pow(1 - progress, 3);
       backgroundMusic.volume = fromVolume + (safeTarget - fromVolume) * eased;
 
@@ -1699,6 +1699,7 @@
   }
 
   document.addEventListener('pointerdown', unlockBackgroundMusic, { capture: true });
+  document.addEventListener('click', unlockBackgroundMusic, { capture: true });
   document.addEventListener('keydown', unlockBackgroundMusic, { capture: true });
   document.addEventListener('visibilitychange', handleBackgroundMusicVisibility);
   musicToggle?.addEventListener('click', toggleBackgroundMusic);
