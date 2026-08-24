@@ -1036,7 +1036,7 @@
 
     cardHoverSound.pause();
     cardHoverSound.currentTime = 0;
-    cardHoverSound.volume = .22;
+    cardHoverSound.volume = .1;
     cardHoverSound.playbackRate = .96 + Math.random() * .08;
     cardHoverSound.play().then(() => {
       cardHoverSoundCount += 1;

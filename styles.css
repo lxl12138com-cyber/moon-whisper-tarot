@@ -1032,7 +1032,7 @@ body.is-intro-playing .hero-copy {
 }
 
 .circular-deck {
-  --deck-aura-size: min(58vw, 78vh);
+  --deck-aura-size: min(61vw, 82vh);
   position: absolute;
   z-index: 7;
   top: 55%;
@@ -1062,43 +1062,59 @@ body.is-intro-playing .hero-copy {
 .circular-deck::before {
   background: radial-gradient(
     circle,
-    transparent 0 54%,
-    rgba(46, 91, 75, .06) 60%,
-    rgba(192, 161, 106, .13) 69%,
-    rgba(224, 197, 142, .075) 73%,
-    transparent 84%
+    transparent 0 66%,
+    rgba(57, 109, 88, .055) 71%,
+    rgba(192, 161, 106, .15) 76%,
+    rgba(228, 204, 130, .34) 82%,
+    rgba(224, 197, 142, .18) 89%,
+    transparent 98%
   );
   box-shadow:
-    0 0 38px rgba(192, 161, 106, .075),
-    0 0 92px rgba(40, 92, 74, .13),
-    inset 0 0 46px rgba(192, 161, 106, .06);
-  filter: blur(7px);
+    0 0 42px rgba(228, 204, 130, .16),
+    0 0 96px rgba(192, 161, 106, .19),
+    inset 0 0 54px rgba(224, 197, 142, .1);
+  filter: blur(9px);
+  mix-blend-mode: screen;
   animation: deck-aura-breathe 7.6s ease-in-out infinite;
 }
 
 .circular-deck::after {
-  width: calc(var(--deck-aura-size) * .72);
-  height: calc(var(--deck-aura-size) * .72);
-  background: radial-gradient(
-    circle,
-    rgba(37, 82, 68, .14) 0,
-    rgba(31, 74, 62, .085) 40%,
-    rgba(192, 161, 106, .035) 62%,
-    transparent 78%
-  );
-  box-shadow: 0 0 76px rgba(45, 101, 82, .115);
-  filter: blur(13px);
-  opacity: .7;
+  background:
+    radial-gradient(circle at 8% 25%, rgba(250, 230, 151, .98) 0 1.5px, rgba(232, 207, 130, .48) 3px, rgba(192, 161, 106, .16) 10px, transparent 24px),
+    radial-gradient(circle at 70% 4%, rgba(247, 224, 141, .86) 0 1.5px, rgba(228, 204, 130, .38) 3px, rgba(192, 161, 106, .13) 9px, transparent 22px),
+    radial-gradient(circle at 96% 43%, rgba(250, 231, 154, .96) 0 1.5px, rgba(232, 208, 133, .44) 3px, rgba(192, 161, 106, .15) 10px, transparent 25px),
+    radial-gradient(circle at 84% 87%, rgba(246, 220, 134, .82) 0 1.5px, rgba(224, 197, 142, .34) 3px, rgba(192, 161, 106, .12) 9px, transparent 22px),
+    radial-gradient(circle at 33% 98%, rgba(250, 229, 149, .92) 0 1.5px, rgba(232, 207, 130, .4) 3px, rgba(192, 161, 106, .14) 10px, transparent 24px),
+    radial-gradient(circle at 3% 65%, rgba(247, 222, 138, .88) 0 1.5px, rgba(228, 204, 130, .37) 3px, rgba(192, 161, 106, .13) 9px, transparent 23px),
+    radial-gradient(circle, rgba(42, 91, 75, .13) 0, rgba(34, 77, 65, .075) 42%, transparent 72%);
+  opacity: .78;
+  mix-blend-mode: screen;
+  animation: deck-fireflies-glimmer 6.4s ease-in-out infinite;
 }
 
 @keyframes deck-aura-breathe {
   0%, 100% {
-    opacity: .58;
+    opacity: .68;
     transform: translate(-50%, -50%) scale(.992);
   }
   50% {
-    opacity: .84;
+    opacity: .96;
     transform: translate(-50%, -50%) scale(1.012);
+  }
+}
+
+@keyframes deck-fireflies-glimmer {
+  0%, 100% {
+    opacity: .66;
+    transform: translate(-50%, -50%) scale(.998);
+  }
+  46% {
+    opacity: .9;
+    transform: translate(-50%, -50%) scale(1.006);
+  }
+  72% {
+    opacity: .74;
+    transform: translate(-50%, -50%) scale(1.002);
   }
 }
 
@@ -1192,7 +1208,7 @@ body.is-intro-playing .hero-copy {
   filter: brightness(.87) saturate(.88) contrast(.98);
   box-shadow:
     0 18px 35px rgba(0, 0, 0, .5),
-    0 0 9px rgba(192, 161, 106, .055);
+    0 0 10px rgba(228, 204, 130, .075);
 }
 
 @keyframes card-breathe {
@@ -1213,7 +1229,8 @@ body.is-intro-playing .hero-copy {
   box-shadow:
     0 22px 42px rgba(0, 0, 0, .56),
     inset 0 0 0 1px rgba(224, 197, 142, .72),
-    0 0 10px rgba(224, 197, 142, .13);
+    0 0 17px rgba(228, 204, 130, .24),
+    0 0 30px rgba(192, 161, 106, .08);
 }
 
 .orbit-card.is-focused .orbit-card-surface {
@@ -1221,7 +1238,8 @@ body.is-intro-playing .hero-copy {
   box-shadow:
     0 22px 42px rgba(0, 0, 0, .56),
     inset 0 0 0 1px rgba(224, 197, 142, .62),
-    0 0 12px rgba(224, 197, 142, .16);
+    0 0 18px rgba(228, 204, 130, .28),
+    0 0 32px rgba(192, 161, 106, .09);
 }
 
 .circular-deck.is-exploring .orbit-card:not(.is-focused) .orbit-card-surface {
@@ -2215,7 +2233,7 @@ body.is-intro-playing .hero-copy {
   }
 
   .circular-deck {
-    --deck-aura-size: min(82vw, 58vh);
+    --deck-aura-size: min(94vw, 62vh);
     top: 54%;
   }
 
