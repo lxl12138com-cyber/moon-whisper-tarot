@@ -51,6 +51,10 @@
   const resultQuestion = document.getElementById('resultQuestion');
   const readingTheme = document.getElementById('readingTheme');
   const resultCards = document.getElementById('resultCards');
+  const cardPreview = document.getElementById('cardPreview');
+  const cardPreviewStage = document.getElementById('cardPreviewStage');
+  const cardPreviewTitle = document.getElementById('cardPreviewTitle');
+  const cardPreviewClose = document.getElementById('cardPreviewClose');
   const relationshipStructure = document.getElementById('relationshipStructure');
   const relationshipElements = document.getElementById('relationshipElements');
   const relationshipCore = document.getElementById('relationshipCore');
@@ -84,6 +88,8 @@
   let backgroundMusicStarted = false;
   let backgroundMusicPauseTimer = 0;
   let backgroundMusicMuted = readBackgroundMusicMuted();
+  let cardPreviewLastFocus = null;
+  let cardPreviewCloseTimer = 0;
 
   const state = {
     step: 'hero',
@@ -1525,6 +1531,52 @@
     openReveal(runId);
   }
 
+  function openCardPreview(card, position, trigger) {
+    if (!cardPreview || !cardPreviewStage || !cardPreviewTitle || !cardPreviewClose) return;
+
+    window.clearTimeout(cardPreviewCloseTimer);
+    cardPreviewCloseTimer = 0;
+    cardPreviewLastFocus = trigger;
+    cardPreviewStage.replaceChildren(createCardFront(card));
+    cardPreviewTitle.textContent = `${position.en} / ${position.zh} · ${card.nameEn} · ${card.nameZh}`;
+    cardPreview.hidden = false;
+    cardPreview.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('is-card-preview-open');
+    experience.inert = true;
+
+    window.requestAnimationFrame(() => {
+      cardPreview.classList.add('is-open');
+      cardPreviewClose.focus({ preventScroll: true });
+    });
+  }
+
+  function closeCardPreview(restoreFocus = true) {
+    if (!cardPreview || cardPreview.hidden) return;
+
+    window.clearTimeout(cardPreviewCloseTimer);
+    cardPreview.classList.remove('is-open');
+
+    const finishClose = () => {
+      cardPreview.hidden = true;
+      cardPreview.setAttribute('aria-hidden', 'true');
+      cardPreviewStage.replaceChildren();
+      document.body.classList.remove('is-card-preview-open');
+      experience.inert = false;
+      if (restoreFocus && cardPreviewLastFocus?.isConnected) {
+        cardPreviewLastFocus.focus({ preventScroll: true });
+      }
+      cardPreviewLastFocus = null;
+      cardPreviewCloseTimer = 0;
+    };
+
+    if (reducedMotion.matches) {
+      finishClose();
+      return;
+    }
+
+    cardPreviewCloseTimer = window.setTimeout(finishClose, 280);
+  }
+
   function createResultCard(reading, index) {
     const { card, position, text } = reading;
     const article = document.createElement('article');
@@ -1532,9 +1584,13 @@
 
     const heading = document.createElement('div');
     heading.className = 'result-card-heading';
-    const visual = document.createElement('div');
+    const visual = document.createElement('button');
     visual.className = 'result-card-visual';
+    visual.type = 'button';
+    visual.title = `放大查看 ${card.nameEn} ${card.nameZh}`;
+    visual.setAttribute('aria-label', `放大查看${position.zh}牌：${card.nameEn} ${card.nameZh}`);
     visual.appendChild(createCardFront(card, true));
+    visual.addEventListener('click', () => openCardPreview(card, position, visual));
 
     const copy = document.createElement('div');
     copy.className = 'result-card-copy';
@@ -1609,6 +1665,7 @@
   }
 
   function resetReadingUi() {
+    closeCardPreview(false);
     clearRingFocus();
     ring.classList.remove(
       'is-active',
@@ -1729,6 +1786,16 @@
   drawAgain.addEventListener('click', resetToAsk);
   revealCards.addEventListener('click', beginReveal);
   showReading.addEventListener('click', showResult);
+  cardPreviewClose?.addEventListener('click', () => closeCardPreview());
+  cardPreview?.addEventListener('click', (event) => {
+    if (event.target === cardPreview) closeCardPreview();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && cardPreview && !cardPreview.hidden) {
+      event.preventDefault();
+      closeCardPreview();
+    }
+  });
 
   window.addEventListener('resize', () => {
     if (

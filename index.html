@@ -16,7 +16,7 @@
       } catch {}
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=deck-firefly-glow-3" />
+  <link rel="stylesheet" href="styles.css?v=card-preview-1" />
 </head>
 <body>
   <div class="moon-loading" id="moonLoading" data-state="initial" role="status" aria-live="polite" aria-label="月光正在显现">
@@ -236,6 +236,17 @@
     </section>
   </main>
 
+  <div class="card-preview" id="cardPreview" hidden aria-hidden="true">
+    <section class="card-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="cardPreviewTitle">
+      <button class="card-preview-close" id="cardPreviewClose" type="button" aria-label="关闭牌面预览">
+        <span aria-hidden="true">×</span>
+      </button>
+      <div class="card-preview-card" id="cardPreviewStage"></div>
+      <p class="card-preview-title" id="cardPreviewTitle"></p>
+      <p class="card-preview-hint">点击空白处或按 Esc 返回解读</p>
+    </section>
+  </div>
+
   <audio id="backgroundMusic" preload="auto" loop playsinline aria-hidden="true">
     <source src="assets/audio/moon-whisper-background.mp3?v=1" type="audio/mpeg" />
   </audio>
@@ -248,6 +259,6 @@
   <script src="data/cards-data.js?v=home-loading-3"></script>
   <script src="data/reading-data.js?v=home-loading-3"></script>
   <script src="reading-engine.js?v=home-loading-3"></script>
-  <script src="main.js?v=hover-volume-2"></script>
+  <script src="main.js?v=card-preview-1"></script>
 </body>
 </html>
