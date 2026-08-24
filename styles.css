@@ -251,6 +251,64 @@ textarea:focus-visible {
   outline-offset: 4px;
 }
 
+.music-toggle {
+  position: fixed;
+  z-index: 1100;
+  top: calc((var(--header-height) - 28px) / 2);
+  right: 18px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(192, 161, 106, .16);
+  border-radius: 50%;
+  background: rgba(7, 21, 18, .14);
+  color: var(--gold);
+  cursor: pointer;
+  opacity: .38;
+  transition: opacity .35s ease, border-color .35s ease, background-color .35s ease;
+}
+
+.music-toggle:hover,
+.music-toggle:focus-visible {
+  border-color: rgba(224, 197, 142, .42);
+  background: rgba(7, 21, 18, .48);
+  opacity: .82;
+}
+
+.music-toggle svg {
+  width: 14px;
+  height: 14px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.25;
+}
+
+.music-toggle .music-speaker {
+  fill: rgba(192, 161, 106, .12);
+}
+
+.music-toggle .music-wave,
+.music-toggle .music-slash {
+  transition: opacity .3s ease;
+}
+
+.music-toggle .music-slash {
+  opacity: 0;
+}
+
+.music-toggle[aria-pressed="true"] .music-wave {
+  opacity: 0;
+}
+
+.music-toggle[aria-pressed="true"] .music-slash {
+  opacity: .9;
+}
+
 .site-header {
   position: fixed;
   z-index: 100;
@@ -281,6 +339,7 @@ textarea:focus-visible {
 
 .step-indicator {
   margin-left: auto;
+  margin-right: 32px;
   color: var(--gold);
   font-size: 10px;
   letter-spacing: .24em;
@@ -1982,6 +2041,7 @@ body.is-intro-playing .hero-copy {
 
   .step-indicator {
     max-width: 130px;
+    margin-right: 28px;
     overflow: hidden;
     font-size: 8px;
     text-overflow: ellipsis;

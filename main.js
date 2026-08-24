@@ -59,6 +59,8 @@
   const cautionActions = document.getElementById('cautionActions');
   const whisperText = document.getElementById('whisperText');
   const drawAgain = document.getElementById('drawAgain');
+  const musicToggle = document.getElementById('musicToggle');
+  const backgroundMusic = document.getElementById('backgroundMusic');
   const cardHoverSound = document.getElementById('cardHoverSound');
 
   const scheduled = new Set();
@@ -67,6 +69,8 @@
   const heroImageUrl = 'assets/production/hero-lake.webp';
   const loadingShownKey = 'moonWhisperLoadingShown';
   const introPlayedKey = 'moonWhisperIntroPlayed';
+  const backgroundMusicMutedKey = 'moonWhisperMusicMuted';
+  const backgroundMusicTargetVolume = .025;
   let activeHoverCard = null;
   let heroMotion = null;
   let heroVideoController = null;
@@ -75,6 +79,11 @@
   let cardHoverSoundUnlocked = false;
   let lastCardHoverSoundAt = 0;
   let cardHoverSoundCount = 0;
+  let backgroundMusicFadeFrame = 0;
+  let backgroundMusicStartPromise = null;
+  let backgroundMusicStarted = false;
+  let backgroundMusicPauseTimer = 0;
+  let backgroundMusicMuted = readBackgroundMusicMuted();
 
   const state = {
     step: 'hero',
@@ -848,6 +857,148 @@
     deckStatus.textContent = `0${selectedCount + 1} / 03 · ${current.zh}正在等待`;
   }
 
+  function cancelBackgroundMusicFade() {
+    if (!backgroundMusicFadeFrame) return;
+    window.cancelAnimationFrame(backgroundMusicFadeFrame);
+    backgroundMusicFadeFrame = 0;
+  }
+
+  function readBackgroundMusicMuted() {
+    try {
+      return window.localStorage.getItem(backgroundMusicMutedKey) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  function writeBackgroundMusicMuted() {
+    try {
+      window.localStorage.setItem(backgroundMusicMutedKey, String(backgroundMusicMuted));
+    } catch {}
+  }
+
+  function syncMusicToggle() {
+    if (!musicToggle) return;
+    const label = backgroundMusicMuted ? '开启背景音乐' : '关闭背景音乐';
+    musicToggle.setAttribute('aria-pressed', String(backgroundMusicMuted));
+    musicToggle.setAttribute('aria-label', label);
+    musicToggle.title = label;
+    musicToggle.dataset.state = backgroundMusicMuted ? 'muted' : 'audible';
+  }
+
+  function fadeBackgroundMusic(targetVolume, duration) {
+    if (!backgroundMusic) return;
+
+    cancelBackgroundMusicFade();
+    const fromVolume = backgroundMusic.volume;
+    const safeTarget = Math.max(0, Math.min(1, targetVolume));
+    const startedAt = window.performance.now();
+    const safeDuration = Math.max(1, duration);
+    backgroundMusic.dataset.fadeTarget = safeTarget.toFixed(3);
+
+    const tick = (now) => {
+      const progress = Math.min(1, (now - startedAt) / safeDuration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      backgroundMusic.volume = fromVolume + (safeTarget - fromVolume) * eased;
+
+      if (progress < 1) {
+        backgroundMusicFadeFrame = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      backgroundMusicFadeFrame = 0;
+      backgroundMusic.volume = safeTarget;
+      backgroundMusic.dataset.state = safeTarget > 0 ? 'playing' : 'silent';
+    };
+
+    backgroundMusicFadeFrame = window.requestAnimationFrame(tick);
+  }
+
+  function startBackgroundMusic(fadeDuration = 4800) {
+    if (!backgroundMusic) return Promise.resolve(false);
+    if (backgroundMusicMuted) {
+      backgroundMusic.dataset.state = 'muted';
+      return Promise.resolve(false);
+    }
+
+    if (!backgroundMusic.paused) {
+      backgroundMusicStarted = true;
+      fadeBackgroundMusic(backgroundMusicTargetVolume, fadeDuration);
+      return Promise.resolve(true);
+    }
+
+    if (backgroundMusicStartPromise) return backgroundMusicStartPromise;
+
+    window.clearTimeout(backgroundMusicPauseTimer);
+    backgroundMusic.volume = 0;
+    backgroundMusic.dataset.state = 'starting';
+    const playAttempt = backgroundMusic.play();
+
+    if (!playAttempt) {
+      backgroundMusicStarted = true;
+      fadeBackgroundMusic(backgroundMusicTargetVolume, fadeDuration);
+      return Promise.resolve(true);
+    }
+
+    backgroundMusicStartPromise = playAttempt.then(() => {
+      backgroundMusicStarted = true;
+      backgroundMusic.dataset.state = 'fading-in';
+      fadeBackgroundMusic(backgroundMusicTargetVolume, fadeDuration);
+      return true;
+    }).catch(() => {
+      backgroundMusic.dataset.state = 'awaiting-interaction';
+      return false;
+    }).finally(() => {
+      backgroundMusicStartPromise = null;
+    });
+
+    return backgroundMusicStartPromise;
+  }
+
+  function unlockBackgroundMusic() {
+    if (!backgroundMusic || (backgroundMusicStarted && !backgroundMusic.paused)) return;
+    startBackgroundMusic(3200);
+  }
+
+  function handleBackgroundMusicVisibility() {
+    if (!backgroundMusic) return;
+
+    window.clearTimeout(backgroundMusicPauseTimer);
+    if (document.hidden) {
+      fadeBackgroundMusic(0, 500);
+      backgroundMusicPauseTimer = window.setTimeout(() => {
+        if (!document.hidden) return;
+        backgroundMusic.pause();
+        backgroundMusic.dataset.state = 'paused';
+      }, 560);
+      return;
+    }
+
+    if (!backgroundMusicMuted) startBackgroundMusic(1400);
+  }
+
+  function toggleBackgroundMusic() {
+    if (!backgroundMusic) return;
+
+    backgroundMusicMuted = !backgroundMusicMuted;
+    writeBackgroundMusicMuted();
+    syncMusicToggle();
+    window.clearTimeout(backgroundMusicPauseTimer);
+
+    if (backgroundMusicMuted) {
+      fadeBackgroundMusic(0, 520);
+      backgroundMusicPauseTimer = window.setTimeout(() => {
+        if (!backgroundMusicMuted) return;
+        backgroundMusic.pause();
+        backgroundMusic.dataset.state = 'muted';
+      }, 580);
+      return;
+    }
+
+    backgroundMusicStarted = false;
+    startBackgroundMusic(1800);
+  }
+
   function unlockCardHoverSound() {
     if (!cardHoverSound || cardHoverSoundUnlocked) return;
 
@@ -1547,6 +1698,10 @@
     setStep('ask');
   }
 
+  document.addEventListener('pointerdown', unlockBackgroundMusic, { capture: true });
+  document.addEventListener('keydown', unlockBackgroundMusic, { capture: true });
+  document.addEventListener('visibilitychange', handleBackgroundMusicVisibility);
+  musicToggle?.addEventListener('click', toggleBackgroundMusic);
   document.addEventListener('pointerdown', unlockCardHoverSound, { capture: true });
   document.addEventListener('keydown', unlockCardHoverSound, { capture: true });
   askStep?.addEventListener('wheel', handleAskWheel, { passive: false });
@@ -1599,6 +1754,17 @@
 
   heroMotion = createHeroMotion();
   heroVideoController = createHeroVideoController();
+  if (backgroundMusic) {
+    backgroundMusic.volume = 0;
+    backgroundMusic.dataset.targetVolume = backgroundMusicTargetVolume.toFixed(3);
+    backgroundMusic.load();
+    syncMusicToggle();
+    if (backgroundMusicMuted) {
+      backgroundMusic.dataset.state = 'muted';
+    } else {
+      startBackgroundMusic();
+    }
+  }
   setStep('hero');
   heroVideoController.start()?.catch(() => {
     writeSessionFlag(loadingShownKey);
